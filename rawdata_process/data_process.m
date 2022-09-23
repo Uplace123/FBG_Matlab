@@ -6,9 +6,7 @@ load Cal_matrix.mat
 curvature = [];
 row_num = 3; % each cal matrix for one AA is 3 by 2.
 % get the curvature
-diff_val = RawData - RefData;
-% temperature compensation??
-diff_val_mean = mean(diff_val); %mean value of each colume
+diff_val_mean = mean(RawData) - mean(RefData);
 
 for i = 1:1:NumAA
     AAindex = i:NumAA:NumAA*NumChannel;
