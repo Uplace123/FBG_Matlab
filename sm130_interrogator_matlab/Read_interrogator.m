@@ -19,6 +19,9 @@ ReadTimeout = p.Results.ReadTimeout;
 % output, matrix
 RawData = zeros(ReadCount,AANumber*ChannelNumber);
 
+
+
+
 Interrogator = pnet('tcpconnect',IPaddress,Port);
 % require tcp/udp/ip toolbox
 % pnet('tcpconnect','hostname',port)
@@ -49,6 +52,8 @@ header = pnet(Interrogator,'Read',str2double(bytes_length),'char');
 
 count = 1;
 
+
+
 % tic
 while 1
 
@@ -59,20 +64,19 @@ while 1
     
     header = pnet(Interrogator,'Read',44,'int16','intel');
     %read header
-
     length_of_signal = (str2double(bytes_length)-88)/4;
     %get the length of signal
 
-    current_data = zeros(1,AANumber*ChannelNumber);
-  
     current_data = double(pnet(Interrogator,'Read',length_of_signal,'int32','intel'))/1e6;
     
     % try to get additional data
-    test = double(pnet(Interrogator,'Read',1,'int32','intel'))/1e6;
-    if ~isempty(test)
-        disp("signal didn't fully read!");
-        break;
-    end
+    %test = double(pnet(Interrogator,'Read',1,'int32','intel'))/1e6;
+    
+    
+%     if ~isempty(test)
+%         disp("signal didn't fully read!");
+%         break;
+%     end
     
     RawData(count,:) = current_data;
     
