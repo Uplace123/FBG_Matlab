@@ -1,15 +1,16 @@
 clear;
 clc;
 
-% test
+% untested code
+% run ini_interrogator.m
+interrogator = ini_interrogator('IPaddress','192.168.1.11','Port',1852,'ReadTimeout',0.1);
 
 RawData = [];
 
-% get 20 set of data
+% get raw data
 while 1
-    res_data = Read_interrogator(1,2,4,'IPaddress','192.168.1.11','Port',1852,'ReadTimeout',0.1);
-    % RawData = Read_interrogator(ReadCount,ChannelNumber,AANumber,...)
-    % RawData matrix(ReadCount,ChannelNumber * AANumber)
-    %RawData = [RawData; res_data];
-    disp(res_data);
+    RawData = Read_interrogator(1,2,4,interrogator);
+    disp(RawData);
 end
+
+close_pnet();
