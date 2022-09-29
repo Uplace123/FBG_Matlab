@@ -27,13 +27,12 @@ disp(curvature);
 % read the reference data
 RefData = mean(Read_interrogator(10,2,4,'IPaddress','192.168.1.11','Port',1852,'ReadTimeout',0.1));
 while 1
-    tic
+  
     RawData = Read_interrogator(1,NumChannel,NumAA,'IPaddress','192.168.1.11','Port',1852,'ReadTimeout',0.1);
     %disp(RawData-RefData);
     %disp(RefData);
     
-    toc
+    
     curvature = data_process(RawData,RefData,NumChannel,NumAA);
     
-    disp(curvature);
 end
