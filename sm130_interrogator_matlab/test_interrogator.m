@@ -9,8 +9,10 @@ RawData = [];
 
 % get raw data
 while 1
+    tic
     RawData = Read_interrogator(1,2,4,interrogator);
-    disp(RawData);
+    %disp(RawData);
+    toc % about 0.01s
 end
 
 close_pnet();
