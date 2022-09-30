@@ -59,9 +59,9 @@ end
 
 %--------------------------------input--------------------------------------
 %% FBG information
-% AA_lcn = L - [10, 20, 30, 40]; % location of AA wrt to control point
-% AA_crv = [0.01, 0.01, 0.01, 0.01]; % should come from interogator
-AA_lcn = [65, 100, 135, 155];% location of AA wrt to base
+
+%AA_lcn = [65, 100, 135, 155];% location of AA wrt to base
+AA_lcn = [65, 100, 135];
 %AA_crv = 0.5e-3*[1, 1, 1, 1]; % test input
 AA_crv = 1e-3 * curvature'; %convert to mm
 AA_er = round(AA_lcn./h) + 1; % elements where the left-moment is fixed
