@@ -1,4 +1,4 @@
-function [ds, ks, sb, h, l, PropertyTable] = FBG_integrated_FEM_Ogden_UTru(curvature)
+function [ds, ks, xs, sb, h, l, PropertyTable] = FBG_integrated_FEM_Ogden_UTru(curvature)
 % input: curvature, curvature of each AA in one plane, col vector: 1*num_AA
 
 %% Initialization
@@ -125,6 +125,12 @@ end
 % output only the displacement
 ds = extract_dist_from_d(d);
 ks = extract_slop_from_d(d);
+dds = diff(ds);
+xs = zeros(1, Nel + 1);
+xs(1) = -sb;
+for i = 2:(Nel + 1)
+    xs(i) = xs(i - 1) + sqrt(h^2 - dds(i - 1)^2);
+end
 
 %% Display of final result
 if converged

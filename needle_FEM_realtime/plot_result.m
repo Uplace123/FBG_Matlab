@@ -7,32 +7,35 @@ close all;
 addpath ./WYZ_FEM/
 % get size
 curvature = zeros(4,2);
-[ds, ks, sb, h, l, PropertyTable] = FBG_integrated_FEM_Ogden_UTru(curvature(:,1));
+[ds, ks, xs, sb, h, l, PropertyTable] = FBG_integrated_FEM_Ogden_UTru(curvature(:,1));
 sz_ds = size(ds);
 sz_ks = size(ks);
+sz_xs = size(xs);
 sz_sb = size(sb);
 sz_h = size(h);
 sz_l = size(l);
 sz_curvature = size(curvature);
 
-filename = fullfile(tempdir,'communicate.dat');
+filename = fullfile(tempdir, 'communicate.dat');
 
 a = exist(filename);
 
 if a == 0
-    fid = fopen(filename,'w');
-    fwrite(fid,ds,'double');
-    fwrite(fid,ks,'double');
-    fwrite(fid,sb,'double');
-    fwrite(fid,h,'double');
-    fwrite(fid,l,'double');
-    fwrite(fid,curvature,'double');
+    fid = fopen(filename, 'w');
+    fwrite(fid, ds, 'double');
+    fwrite(fid, ks, 'double');
+    fwrite(fid, xs, 'double');
+    fwrite(fid, sb, 'double');
+    fwrite(fid, h, 'double');
+    fwrite(fid, l, 'double');
+    fwrite(fid, curvature, 'double');
     fclose(fid);
 end
 
 m = memmapfile(filename, 'Writable',true, 'Format', ...
     {'double', sz_ds, 'ds';
     'double', sz_ks, 'ks';
+    'double', sz_xs, 'xs';
     'double', sz_sb, 'sb';
     'double', sz_h, 'h';
     'double', sz_l, 'l';
@@ -43,24 +46,24 @@ m = memmapfile(filename, 'Writable',true, 'Format', ...
 AA_lcn = [65,100,135,155];
 tip_lcn = 165;
 
-x = -m.Data.sb:m.Data.h:m.Data.l;
+% x = -m.Data.sb:m.Data.h:m.Data.l;
 
 % get the ydata at AA
-index_aa  =( AA_lcn  / 165)  * (size(x,2) - 1);
-index_tip =( tip_lcn / 165) * (size(x,2) - 1);
+index_aa  =( AA_lcn  / 165)*(size(xs,2) - 1);
+index_tip =( tip_lcn / 165)*(size(xs,2) - 1);
 
 
 f = gcf;
 set(f, 'Name', sprintf('FEM Solution with Load Stepping'));
 set(f, 'position', [200,200,2000,1500]);
-plt1 = plot(x, rand(1, size(x, 2)), 'k-', 'Parent', gca,'LineWidth',2);
+plt1 = plot(xs, rand(1, size(xs, 2)), 'k-', 'Parent', gca,'LineWidth',2);
 hold on
-plt2 = plot(index_aa, rand(1,size(index_aa,2)), 'r*', 'Parent',gca,'LineWidth',2);
+plt2 = plot(index_aa, rand(1, size(index_aa, 2)), 'r*', 'Parent', gca,'LineWidth', 2);
 hold on
-plt3 = plot(index_tip, rand(1,size(index_tip,2)), 'b*', 'Parent', gca,'LineWidth',2);
+plt3 = plot(index_tip, rand(1, size(index_tip, 2)), 'b*', 'Parent', gca,'LineWidth', 2);
 hold on
 
-% plot refer curve
+% plot reference curves
 % offset = 35;
 % load refer_curve_05.mat
 % plot(x_1*1000 + offset,y_1*1000,'--');
