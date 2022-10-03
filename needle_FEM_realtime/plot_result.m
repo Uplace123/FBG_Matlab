@@ -56,11 +56,11 @@ index_tip =( tip_lcn / 165)*(size(xs,2) - 1);
 f = gcf;
 set(f, 'Name', sprintf('FEM Solution with Load Stepping'));
 set(f, 'position', [200,200,2000,1500]);
-plt1 = plot(xs, rand(1, size(xs, 2)), 'k-', 'Parent', gca,'LineWidth',2);
+plt1 = plot(xs, rand(1, size(xs, 2)), 'k-', 'Parent', gca,'LineWidth',5);
 hold on
-plt2 = plot(index_aa, rand(1, size(index_aa, 2)), 'r*', 'Parent', gca,'LineWidth', 2);
+plt2 = plot(index_aa, rand(1, size(index_aa, 2)), 'r*', 'Parent', gca,'LineWidth', 5);
 hold on
-plt3 = plot(index_tip, rand(1, size(index_tip, 2)), 'b*', 'Parent', gca,'LineWidth', 2);
+plt3 = plot(index_tip, rand(1, size(index_tip, 2)), 'b*', 'Parent', gca,'LineWidth', 5);
 hold on
 
 % plot reference curves
@@ -77,17 +77,18 @@ hold on
 % plot(x_1*1000 + offset,y_1*1000,'--');
 
 
-tip_text = text(0,0,"",'FontSize',15,'Parent',gca);
-AA1_text = text(10,-40,"",'FontSize',15,'Parent',gca);
-AA2_text = text(40,-40,"",'FontSize',15,'Parent',gca);
-AA3_text = text(70,-40,"",'FontSize',15,'Parent',gca);
-AA4_text = text(100,-40,"",'FontSize',15,'Parent',gca);
+tip_text = text(0,0,"",'FontSize',25,'Parent',gca);
+AA1_text = text(10,-40,"",'FontSize',25,'Parent',gca);
+AA2_text = text(40,-40,"",'FontSize',25,'Parent',gca);
+AA3_text = text(70,-40,"",'FontSize',25,'Parent',gca);
+%AA4_text = text(100,-40,"",'FontSize',25,'Parent',gca);
 
 
 grid on
 
-xlabel("length",'FontSize',15);
-ylabel("deflection",'FontSize',15);
+xlabel("length",'FontSize',30);
+ylabel("deflection",'FontSize',30);
+set(gca, "FontSize", 30);
 
 axis equal;
 xlim([0, 185]);
@@ -97,7 +98,7 @@ ylim([-60,60]);
 
 
 while 1
-    tic
+    %tic
     set(plt1, 'YData', m.Data.ds);
     
     Y_AA = m.Data.ds(index_aa + 1);
@@ -112,17 +113,17 @@ while 1
     %tip_text = text(index_tip-2,Y_tip+2,cellstr(str),'FontSize',15);
     set(tip_text,'Position',[index_tip+2,Y_tip], 'String', str);
     % curvature at AA
-    str_A1 = "Curvature AA1: " + newline +num2str(m.Data.curvature(1))+"1/m";
-    str_A2 = "Curvature AA2: " + newline +num2str(m.Data.curvature(2))+"1/m";
-    str_A3 = "Curvature AA3: " + newline +num2str(m.Data.curvature(3))+"1/m";
-    str_A4 = "Curvature AA4: " + newline +num2str(m.Data.curvature(4))+"1/m";
+    str_A1 = "Curvature AA1: " + newline +num2str(m.Data.curvature(1,2))+" 1/m";
+    str_A2 = "Curvature AA2: " + newline +num2str(m.Data.curvature(2,2))+" 1/m";
+    str_A3 = "Curvature AA3: " + newline +num2str(m.Data.curvature(3,2))+" 1/m";
+    %str_A4 = "Curvature AA4: " + newline +num2str(m.Data.curvature(4,2))+" 1/m";
     set(AA1_text,'Position',[index_aa(1)-10,Y_AA(1)+5], 'String', str_A1);
     set(AA2_text,'Position',[index_aa(2)-10,Y_AA(2)-5], 'String', str_A2);
     set(AA3_text,'Position',[index_aa(3)-10,Y_AA(3)+5], 'String', str_A3);
-    set(AA4_text,'Position',[index_aa(4)-10,Y_AA(4)-5], 'String', str_A4);
+    %set(AA4_text,'Position',[index_aa(4)-10,Y_AA(4)-5], 'String', str_A4);
     drawnow
     pause(0.05);
-    toc
+    %toc
 end
 
 

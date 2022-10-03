@@ -19,6 +19,7 @@ if a == 0
     fwrite(fid,ds,'double');
     fwrite(fid,ks,'double');
     fwrite(fid,sb,'double');
+    fwrite(fid,xs,'double');
     fwrite(fid,h,'double');
     fwrite(fid,l,'double');
     fwrite(fid,curvatures,'double');
@@ -31,6 +32,7 @@ sz_ks = size(ks);
 sz_sb = size(sb);
 sz_h = size(h);
 sz_l = size(l);
+sz_xs = size(xs);
 sz_curvatures = size(curvatures);
 
 m = memmapfile(filename, 'Writable',true, 'Format', ...
