@@ -1,6 +1,5 @@
 clear;
 clc;
-addpath ../
 
 % Calibration Matrices Generation
 CH = 2; % number of channels
