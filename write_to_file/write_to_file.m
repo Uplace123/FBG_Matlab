@@ -21,18 +21,24 @@ close_pnet();
 
 interrogator = ini_interrogator('IPaddress','192.168.1.11','Port',1852,'ReadTimeout',0.1);
 % get ref data
+
+disp("press ENTER to record the Reference data...");
+pause;
 RefData = mean(Read_interrogator(20,2,4,interrogator));
+disp("done!");
 
 
 while 1
-    disp("press ENTER to record...")
+    disp("press ENTER to record data...");
     pause;
+    disp("recording..");
     sheetname = datestr(now,30);
-    
     raw_data = Read_interrogator(num_count,num_ch,num_AA,interrogator);
     % write rawdata to xls file
+    disp("write to xls file...");
     writematrix(raw_data,filename_rawdata,'sheet',sheetname);
     % get curvature num_AA * 2
+    disp("write to txt file...");
     curvature = data_process(raw_data,RefData,num_ch,num_AA);
     curvature_a = {sheetname,curvature(1,1),curvature(2,1),curvature(3,1),curvature(4,1),curvature(1,2),curvature(2,2),curvature(3,2),curvature(4,2)};
     if exist(filename_curvature,'file')
