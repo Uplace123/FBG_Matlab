@@ -15,7 +15,7 @@ end
 row_num = NumChannel; 
 
 % get the curvature
-diff_val_mean = RawData - RefData;
+diff_val_mean = mean(RawData,1) - RefData;
 
 for i = 1:1:NumAA
     AAindex = i:NumAA:NumAA*NumChannel;
