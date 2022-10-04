@@ -1,10 +1,13 @@
-function [ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(EBC_cur,EBC,max_outer_iter)
-% input: curvature, curvature of each AA in one plane, col vector: 1*num_AA
+function [ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(curvatures,AA_lcn,...
+    EBC_cur,EBC,max_outer_iter,...
+    max_inner_iter,EBC_converged,...
+    load_ratio,nDOF,Db,Kb,d,...
+    ti, E, I, PropertyTable,sb,LM,tol,...
+    outer_iter,converged,freeDOF,Nel,h)
 
+AA_crv = 1e-3 * curvatures'; % curvature at AAs in mm
+AA_er = round(AA_lcn./h) + 1; % elements where the left-moment is fixed
 
-inner_iter = 0; % Initialize inner_iter counter
-outer_iter = 0; % Initialize outer_iter counter
-converged = 0;
 %% FEM Main
 % tic
 % Load stepping

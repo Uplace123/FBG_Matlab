@@ -1,20 +1,34 @@
 % Plotting needle shape
+close all;
 clear;
 clc;
-close all;
-
 
 addpath ./WYZ_FEM/
+
+FEM_params;
+NumAA_real = 4; % keep the same as needle
+NumAA = size(AA_lcn,2); % this is the number off AA used in FEM
+
 % get size
-curvature = zeros(4,2);
-[ds, ks, xs, sb, h, l, PropertyTable] = FBG_integrated_FEM_Ogden_UTru(curvature(:,1));
+curvatures = zeros(NumAA_real,2);
+% position of AA, dist from the baseS
+tip_lcn = 165;
+
+%FEM_params;
+load FEM_params.mat
+
+[ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(curvatures,AA_lcn,...
+    EBC_cur,EBC,max_outer_iter,...
+    max_inner_iter,EBC_converged,...
+    load_ratio,nDOF,Db,Kb,d,...
+    ti, E, I, PropertyTable,sb,LM,tol,...
+    outer_iter,converged,freeDOF,Nel,h);
+
+
 sz_ds = size(ds);
 sz_ks = size(ks);
 sz_xs = size(xs);
-sz_sb = size(sb);
-sz_h = size(h);
-sz_l = size(l);
-sz_curvature = size(curvature);
+sz_curvature = size(curvatures);
 
 filename = fullfile(tempdir, 'communicate.dat');
 
@@ -25,9 +39,6 @@ if a == 0
     fwrite(fid, ds, 'double');
     fwrite(fid, ks, 'double');
     fwrite(fid, xs, 'double');
-    fwrite(fid, sb, 'double');
-    fwrite(fid, h, 'double');
-    fwrite(fid, l, 'double');
     fwrite(fid, curvature, 'double');
     fclose(fid);
 end
@@ -36,15 +47,10 @@ m = memmapfile(filename, 'Writable',true, 'Format', ...
     {'double', sz_ds, 'ds';
     'double', sz_ks, 'ks';
     'double', sz_xs, 'xs';
-    'double', sz_sb, 'sb';
-    'double', sz_h, 'h';
-    'double', sz_l, 'l';
     'double', sz_curvature, 'curvature';
     });
 
-% position of AA, dist from the baseS
-AA_lcn = [65,100,135,155];
-tip_lcn = 165;
+
 
 % x = -m.Data.sb:m.Data.h:m.Data.l;
 
@@ -113,14 +119,23 @@ while 1
     %tip_text = text(index_tip-2,Y_tip+2,cellstr(str),'FontSize',15);
     set(tip_text,'Position',[index_tip+2,Y_tip], 'String', str);
     % curvature at AA
-    str_A1 = "Curvature AA1: " + newline +num2str(m.Data.curvature(1,2))+" 1/m";
-    str_A2 = "Curvature AA2: " + newline +num2str(m.Data.curvature(2,2))+" 1/m";
-    str_A3 = "Curvature AA3: " + newline +num2str(m.Data.curvature(3,2))+" 1/m";
-    str_A4 = "Curvature AA4: " + newline +num2str(m.Data.curvature(4,2))+" 1/m";
-    set(AA1_text,'Position',[index_aa(1)-10,Y_AA(1)+10], 'String', str_A1);
-    set(AA2_text,'Position',[index_aa(2)-10,Y_AA(2)-10], 'String', str_A2);
-    set(AA3_text,'Position',[index_aa(3)-10,Y_AA(3)+10], 'String', str_A3);
-    set(AA4_text,'Position',[index_aa(4)-10,Y_AA(4)-10], 'String', str_A4);
+    for i = 1:NumAA
+        switch i
+            case 1 
+                str_A1 = "Curvature AA1: " + newline +num2str(m.Data.curvature(1,2))+" 1/m";
+                set(AA1_text,'Position',[index_aa(1)-10,Y_AA(1)+10], 'String', str_A1);
+            case 2
+                str_A2 = "Curvature AA2: " + newline +num2str(m.Data.curvature(2,2))+" 1/m";
+                set(AA2_text,'Position',[index_aa(2)-10,Y_AA(2)-10], 'String', str_A2);
+            case 3
+                str_A3 = "Curvature AA3: " + newline +num2str(m.Data.curvature(3,2))+" 1/m";
+                set(AA3_text,'Position',[index_aa(3)-10,Y_AA(3)+10], 'String', str_A3);
+            case 4
+                str_A4 = "Curvature AA4: " + newline +num2str(m.Data.curvature(4,2))+" 1/m";
+                set(AA4_text,'Position',[index_aa(4)-10,Y_AA(4)-10], 'String', str_A4);
+        end
+    end
+
     drawnow
     pause(0.05);
     %toc
