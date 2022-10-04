@@ -1,71 +1,10 @@
-function [ds, ks, xs, sb, h, l, PropertyTable] = FBG_integrated_FEM_Ogden_UTru(curvature)
+function [ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(EBC_cur,EBC,max_outer_iter)
 % input: curvature, curvature of each AA in one plane, col vector: 1*num_AA
 
-%% Initialization
-sb = 0;
-l = 165;
-Db = 0;
-Kb = 0;
-ti = 25;
-Nel = sb + l;
-Mu = 0;
-Alpha = 5;
 
-% Add Cholesky inverse
-% addpath(genpath('./invChol/'));
-
-% Constants
-L = sb + l;
-FEM_params;
-% Kb = -Db/(sb + rcm);
-
-Interval = {[-sb, 0]; [0, l]};
-MuT = [0; Mu]*10^-6; % Pa, but in mm^2; 1Pa = 1e-6 N/mm^2; 1kPa = 1e-3 N/mm^2
-AlphaT = [0; Alpha]; % need abs(alpha) > 1 
-GammaT = [0; 0];
-PropertyTable = table(Interval, MuT, AlphaT, GammaT);
-% ti = 25; % Initial length of undeformed tissue. Will affect solution
-
-% FEM-specific constants
-% Nel = 10; % Total umber of elements
-Nen = 4; % Number of element DOF
-DOF = 1:(2*Nel + 2);
-nDOF = length(DOF);
-d = zeros(nDOF, 1); % Initial guess of solution
-h = L/Nel; % Finite element size
-EBC = [1; 2]; % Displacement and slope of first element left node is prescribed
-freeDOF = DOF;
-freeDOF(EBC) = [];
-
-% Algorithm-specific constants
-max_inner_iter = 5; % Max number of iterations for Newton's method
-max_outer_iter = 50; % Max number of iterations for load stepping
 inner_iter = 0; % Initialize inner_iter counter
 outer_iter = 0; % Initialize outer_iter counter
-tol = 1e-3; % Convergence criterion
 converged = 0;
-load_ratio = 1;
-EBC_cur = zeros(2, 1); % For load stepping
-EBC_converged = zeros(2, 1); % For load stepping from previously converged EBC
-
-% Construction of LM
-LM = zeros(Nen, Nel);
-for e = 1:Nel
-    LM(1, e) = 2*e - 1;
-    LM(2, e) = 2*e - 0;
-    LM(3, e) = 2*e + 1;
-    LM(4, e) = 2*e + 2;
-end
-
-%--------------------------------input--------------------------------------
-%% FBG information
-
-%AA_lcn = [65, 100, 135, 155];% location of AA wrt to base
-AA_lcn = [65, 100, 135];
-%AA_crv = 0.5e-3*[1, 1, 1, 1]; % test input
-AA_crv = 1e-3 * curvature'; %convert to mm
-AA_er = round(AA_lcn./h) + 1; % elements where the left-moment is fixed
-
 %% FEM Main
 % tic
 % Load stepping
