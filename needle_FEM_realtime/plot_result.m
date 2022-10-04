@@ -81,7 +81,7 @@ tip_text = text(0,0,"",'FontSize',25,'Parent',gca);
 AA1_text = text(10,-40,"",'FontSize',25,'Parent',gca);
 AA2_text = text(40,-40,"",'FontSize',25,'Parent',gca);
 AA3_text = text(70,-40,"",'FontSize',25,'Parent',gca);
-%AA4_text = text(100,-40,"",'FontSize',25,'Parent',gca);
+AA4_text = text(100,-40,"",'FontSize',25,'Parent',gca);
 
 
 grid on
@@ -116,11 +116,11 @@ while 1
     str_A1 = "Curvature AA1: " + newline +num2str(m.Data.curvature(1,2))+" 1/m";
     str_A2 = "Curvature AA2: " + newline +num2str(m.Data.curvature(2,2))+" 1/m";
     str_A3 = "Curvature AA3: " + newline +num2str(m.Data.curvature(3,2))+" 1/m";
-    %str_A4 = "Curvature AA4: " + newline +num2str(m.Data.curvature(4,2))+" 1/m";
-    set(AA1_text,'Position',[index_aa(1)-10,Y_AA(1)+5], 'String', str_A1);
-    set(AA2_text,'Position',[index_aa(2)-10,Y_AA(2)-5], 'String', str_A2);
-    set(AA3_text,'Position',[index_aa(3)-10,Y_AA(3)+5], 'String', str_A3);
-    %set(AA4_text,'Position',[index_aa(4)-10,Y_AA(4)-5], 'String', str_A4);
+    str_A4 = "Curvature AA4: " + newline +num2str(m.Data.curvature(4,2))+" 1/m";
+    set(AA1_text,'Position',[index_aa(1)-10,Y_AA(1)+10], 'String', str_A1);
+    set(AA2_text,'Position',[index_aa(2)-10,Y_AA(2)-10], 'String', str_A2);
+    set(AA3_text,'Position',[index_aa(3)-10,Y_AA(3)+10], 'String', str_A3);
+    set(AA4_text,'Position',[index_aa(4)-10,Y_AA(4)-10], 'String', str_A4);
     drawnow
     pause(0.05);
     %toc
