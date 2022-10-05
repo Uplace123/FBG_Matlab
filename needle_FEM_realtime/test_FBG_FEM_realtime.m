@@ -2,13 +2,15 @@
 clear;
 clc;
 
-%% Close all pnet connection
-close_pnet();
+
 
 %% Add path
 addpath ../sm130_interrogator_matlab/
 addpath ../rawdata_process/
 addpath ./WYZ_FEM
+
+%% Close all pnet connection
+close_pnet();
 
 %% FEM needed input
 sb = 20;
@@ -17,14 +19,15 @@ Db = 0; % control input 1
 Kb = 0; % control input 2
 ti = 25;
 Nel = sb + l; % 1mm elements
-Mu = [0, 5e3];
+Mu = [0, 0];
 Alpha = [2, 3];
 Interval = {[-sb, 0], [0, l + 10]};
+AA_lcn = [65, 100, 135,155]; % measured from base TODO: measure from tip
+save("plot_params.mat",'sb','l','Db','Kb','ti','Nel','Mu','Alpha','Interval','AA_lcn');
 
 %% FBG information
 NumChannel = 2;
 NumAA = 4; % this should keep tha same as needle
-AA_lcn = [65, 100, 135]; % measured from base TODO: measure from tip
 curvatures = zeros(NumAA,2); %num_AA * 2
 curvatures_xy = curvatures(:,1);
 curvatures_xz = curvatures(:,2);
@@ -77,6 +80,7 @@ while 1
     curvatures = data_process(RawData,RefData,NumChannel,NumAA);
     curvatures_xy = curvatures(:,1);
     curvatures_xz = curvatures(:,2);
+    %disp(curvatures_xz);
     %toc about 0.01s
     [ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(sb, l, Db, Kb, ti, Nel, Mu, ...
                                              Alpha, Interval, curvatures_xz, AA_lcn);

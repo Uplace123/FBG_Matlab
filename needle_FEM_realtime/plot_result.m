@@ -5,25 +5,21 @@ clc;
 
 addpath ./WYZ_FEM/
 
-FEM_params;
+%% FEM needed input
+load plot_params.mat
+
 NumAA_real = 4; % keep the same as needle
 NumAA = size(AA_lcn,2); % this is the number off AA used in FEM
 
 % get size
 curvatures = zeros(NumAA_real,2);
+curvatures_xz = curvatures(:,2);
 % position of AA, dist from the baseS
-tip_lcn = 165;
+tip_lcn = l + sb;
 
-%FEM_params;
-load FEM_params.mat
 
-[ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(curvatures,AA_lcn,...
-    EBC_cur,EBC,max_outer_iter,...
-    max_inner_iter,EBC_converged,...
-    load_ratio,nDOF,Db,Kb,d,...
-    ti, E, I, PropertyTable,sb,LM,tol,...
-    outer_iter,converged,freeDOF,Nel,h);
-
+[ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(sb, l, Db, Kb, ti, Nel, Mu, ...
+                                             Alpha, Interval, curvatures_xz, AA_lcn);
 
 sz_ds = size(ds);
 sz_ks = size(ks);
@@ -55,8 +51,9 @@ m = memmapfile(filename, 'Writable',true, 'Format', ...
 % x = -m.Data.sb:m.Data.h:m.Data.l;
 
 % get the ydata at AA
-index_aa  =( AA_lcn  / 165)*(size(xs,2) - 1);
-index_tip =( tip_lcn / 165)*(size(xs,2) - 1);
+
+index_aa  = (AA_lcn  / (l+sb))*(size(xs,2) - 1);
+index_tip = (tip_lcn / (l+sb))*(size(xs,2) - 1);
 
 
 f = gcf;
@@ -64,9 +61,9 @@ set(f, 'Name', sprintf('FEM Solution with Load Stepping'));
 set(f, 'position', [200,200,2000,1500]);
 plt1 = plot(xs, rand(1, size(xs, 2)), 'k-', 'Parent', gca,'LineWidth',5);
 hold on
-plt2 = plot(index_aa, rand(1, size(index_aa, 2)), 'r*', 'Parent', gca,'LineWidth', 5);
+plt2 = plot(xs(index_aa+1), rand(1, size(index_aa, 2)), 'r*', 'Parent', gca,'LineWidth', 5);
 hold on
-plt3 = plot(index_tip, rand(1, size(index_tip, 2)), 'b*', 'Parent', gca,'LineWidth', 5);
+plt3 = plot(xs(index_tip+1), rand(1, size(index_tip, 2)), 'b*', 'Parent', gca,'LineWidth', 5);
 hold on
 
 % plot reference curves
@@ -97,7 +94,7 @@ ylabel("deflection",'FontSize',30);
 set(gca, "FontSize", 30);
 
 axis equal;
-xlim([0, 185]);
+xlim([-sb, l+20]);
 ylim([-60,60]);
 % plot some reference curve
 % todo
@@ -117,22 +114,22 @@ while 1
     % tip deflection
     str = "Tip deflection: "+ newline + num2str(Y_tip)+"mm";
     %tip_text = text(index_tip-2,Y_tip+2,cellstr(str),'FontSize',15);
-    set(tip_text,'Position',[index_tip+2,Y_tip], 'String', str);
+    set(tip_text,'Position',[xs(index_tip+1)+2,Y_tip], 'String', str);
     % curvature at AA
     for i = 1:NumAA
         switch i
             case 1 
                 str_A1 = "Curvature AA1: " + newline +num2str(m.Data.curvature(1,2))+" 1/m";
-                set(AA1_text,'Position',[index_aa(1)-10,Y_AA(1)+10], 'String', str_A1);
+                set(AA1_text,'Position',[xs(index_aa(1)+1)-10,Y_AA(1)+10], 'String', str_A1);
             case 2
                 str_A2 = "Curvature AA2: " + newline +num2str(m.Data.curvature(2,2))+" 1/m";
-                set(AA2_text,'Position',[index_aa(2)-10,Y_AA(2)-10], 'String', str_A2);
+                set(AA2_text,'Position',[xs(index_aa(2)+1)-10,Y_AA(2)-10], 'String', str_A2);
             case 3
                 str_A3 = "Curvature AA3: " + newline +num2str(m.Data.curvature(3,2))+" 1/m";
-                set(AA3_text,'Position',[index_aa(3)-10,Y_AA(3)+10], 'String', str_A3);
+                set(AA3_text,'Position',[xs(index_aa(3)+1)-10,Y_AA(3)+10], 'String', str_A3);
             case 4
                 str_A4 = "Curvature AA4: " + newline +num2str(m.Data.curvature(4,2))+" 1/m";
-                set(AA4_text,'Position',[index_aa(4)-10,Y_AA(4)-10], 'String', str_A4);
+                set(AA4_text,'Position',[xs(index_aa(4)+1)-10,Y_AA(4)-10], 'String', str_A4);
         end
     end
 
