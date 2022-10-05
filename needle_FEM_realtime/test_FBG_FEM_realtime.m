@@ -2,35 +2,36 @@
 clear;
 clc;
 
-% close all pnet connection
+%% Close all pnet connection
+close_pnet();
 
-
+%% Add path
 addpath ../sm130_interrogator_matlab/
 addpath ../rawdata_process/
 addpath ./WYZ_FEM
 
-close_pnet();
+%% FEM needed input
+sb = 20;
+l = 145;
+Db = 0; % control input 1
+Kb = 0; % control input 2
+ti = 25;
+Nel = sb + l; % 1mm elements
+Mu = [0, 5e3];
+Alpha = [2, 3];
+Interval = {[-sb, 0], [0, l + 10]};
 
-% initial data
+%% FBG information
 NumChannel = 2;
-RefData = [];
-RawData = [];
-
-
-% FEM needed input
-%FEM_params;
-load FEM_params.mat
 NumAA = 4; % this should keep tha same as needle
+AA_lcn = [65, 100, 135]; % measured from base TODO: measure from tip
 curvatures = zeros(NumAA,2); %num_AA * 2
 curvatures_xy = curvatures(:,1);
 curvatures_xz = curvatures(:,2);
 
-[ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(curvatures_xz,AA_lcn,...
-    EBC_cur,EBC,max_outer_iter,...
-    max_inner_iter,EBC_converged,...
-    load_ratio,nDOF,Db,Kb,d,...
-    ti, E, I, PropertyTable,sb,LM,tol,...
-    outer_iter,converged,freeDOF,Nel,h);
+%% Initialization, data and memory
+[ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(sb, l, Db, Kb, ti, Nel, Mu, ...
+                                             Alpha, Interval, curvatures_xz, AA_lcn);
 
 filename = fullfile(tempdir,'communicate.dat');
 a = exist(filename, 'file');
@@ -59,14 +60,15 @@ m = memmapfile(filename, 'Writable',true, 'Format', ...
 
 
 
-
+%% Read interrogator data for FBG initialization
+RefData = [];
+RawData = [];
 % run ini_interrogator.m
 interrogator = ini_interrogator('IPaddress','192.168.1.11','Port',1852,'ReadTimeout',0.1);
-
 % read the reference data
 RefData = mean(Read_interrogator(20,2,NumAA,interrogator));
 
-%while 1
+%% Main loop
 while 1
     tic
     
@@ -76,12 +78,9 @@ while 1
     curvatures_xy = curvatures(:,1);
     curvatures_xz = curvatures(:,2);
     %toc about 0.01s
-    [ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(curvatures_xz,AA_lcn,...
-    EBC_cur,EBC,max_outer_iter,...
-    max_inner_iter,EBC_converged,...
-    load_ratio,nDOF,Db,Kb,d,...
-    ti, E, I, PropertyTable,sb,LM,tol,...
-    outer_iter,converged,freeDOF,Nel,h);
+    [ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(sb, l, Db, Kb, ti, Nel, Mu, ...
+                                             Alpha, Interval, curvatures_xz, AA_lcn);
+
     %toc about 0.09s
 
     % propertytable interval mut alphaT GammaT

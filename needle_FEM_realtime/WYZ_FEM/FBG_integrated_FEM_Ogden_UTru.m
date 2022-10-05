@@ -1,10 +1,61 @@
-function [ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(curvatures,AA_lcn,...
-    EBC_cur,EBC,max_outer_iter,...
-    max_inner_iter,EBC_converged,...
-    load_ratio,nDOF,Db,Kb,d,...
-    ti, E, I, PropertyTable,sb,LM,tol,...
-    outer_iter,converged,freeDOF,Nel,h)
+function [ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(sb, l, Db, Kb, ti, Nel, Mu, Alpha, Interval, curvatures, AA_lcn)
+%% Initialization
+% sb = 0;
+% l = 165;
+% Db = 0;
+% Kb = 0;
+% ti = 25;
+% Nel = sb + l;
+% Mu = 0;
+% Alpha = 5;
 
+% Add Cholesky inverse
+% addpath(genpath('./invChol/'));
+
+% Constants
+L = sb + l;
+FEM_params;
+% Kb = -Db/(sb + rcm);
+
+% Interval = {[-sb, 0]; [0, l]};
+MuT = Mu*10^-6; % Pa, but in mm^2; 1Pa = 1e-6 N/mm^2; 1kPa = 1e-3 N/mm^2
+AlphaT = Alpha; % need abs(alpha) > 1 
+GammaT = zeros(size(MuT));
+PropertyTable = table(Interval, MuT, AlphaT, GammaT);
+% ti = 25; % Initial length of undeformed tissue. Will affect solution
+
+% FEM-specific constants
+% Nel = 10; % Total umber of elements
+Nen = 4; % Number of element DOF
+DOF = 1:(2*Nel + 2);
+nDOF = length(DOF);
+d = zeros(nDOF, 1); % Initial guess of solution
+h = L/Nel; % Finite element size
+EBC = [1; 2]; % Displacement and slope of first element left node is prescribed
+freeDOF = DOF;
+freeDOF(EBC) = [];
+
+% Algorithm-specific constants
+max_inner_iter = 5; % Max number of iterations for Newton's method
+max_outer_iter = 50; % Max number of iterations for load stepping
+inner_iter = 0; % Initialize inner_iter counter
+outer_iter = 0; % Initialize outer_iter counter
+tol = 1e-3; % Convergence criterion
+converged = 0;
+load_ratio = 1;
+EBC_cur = zeros(2, 1); % For load stepping
+EBC_converged = zeros(2, 1); % For load stepping from previously converged EBC
+
+% Construction of LM
+LM = zeros(Nen, Nel);
+for e = 1:Nel
+    LM(1, e) = 2*e - 1;
+    LM(2, e) = 2*e - 0;
+    LM(3, e) = 2*e + 1;
+    LM(4, e) = 2*e + 2;
+end
+
+% Curvature inputs from FBG
 AA_crv = 1e-3 * curvatures'; % curvature at AAs in mm
 AA_er = round(AA_lcn./h) + 1; % elements where the left-moment is fixed
 
