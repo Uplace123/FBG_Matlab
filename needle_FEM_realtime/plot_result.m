@@ -4,11 +4,13 @@ clear;
 clc;
 
 addpath ./WYZ_FEM/
+addpath ./WYZ_FEM/invChol/
 
 %% FEM needed input
 load plot_params.mat
 
 NumAA_real = 4; % keep the same as needle
+AA_lcn = AA_lcn_base;
 NumAA = size(AA_lcn,2); % this is the number off AA used in FEM
 
 % get size

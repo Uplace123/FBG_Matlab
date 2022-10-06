@@ -10,7 +10,7 @@ function [ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(sb, l, Db, Kb, ti, Nel, Mu
 % Alpha = 5;
 
 % Add Cholesky inverse
-% addpath(genpath('./invChol/'));
+
 
 % Constants
 L = sb + l;
@@ -93,8 +93,8 @@ while (~all(EBC_cur == EBC)) && (outer_iter < max_outer_iter)
 
         % Newton's method
         % Use only free DOF from the list of DOF to compute d
-        %delta_d = invChol_mex(K(freeDOF, freeDOF))*(F(freeDOF, 1)-P(freeDOF, 1));
-        delta_d = pinv(K(freeDOF, freeDOF))*(F(freeDOF, 1)-P(freeDOF, 1));
+        delta_d = invChol_mex(K(freeDOF, freeDOF))*(F(freeDOF, 1)-P(freeDOF, 1));
+        %delta_d = pinv(K(freeDOF, freeDOF))*(F(freeDOF, 1)-P(freeDOF, 1));
         
         if(norm((F(freeDOF, 1)-P(freeDOF, 1))) <= tol)
             converged = 1;
