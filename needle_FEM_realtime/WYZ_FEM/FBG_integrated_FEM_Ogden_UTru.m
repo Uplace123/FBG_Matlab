@@ -58,9 +58,10 @@ end
 % Curvature inputs from FBG
 AA_crv = 1e-3 * curvatures'; % curvature at AAs in mm
 AA_er = round(AA_lcn./h) + 1; % elements where the left-moment is fixed
+AA_crv = AA_crv(AA_er >= 0); % curvatures that have negative element indices are skipped
+AA_er = AA_er(AA_er >= 0); % elements that have negative indices are skipped
 
 %% FEM Main
-% tic
 % Load stepping
 while (~all(EBC_cur == EBC)) && (outer_iter < max_outer_iter)
     outer_iter = outer_iter + 1;
@@ -83,18 +84,21 @@ while (~all(EBC_cur == EBC)) && (outer_iter < max_outer_iter)
                                               AA_er, AA_crv);
 
             % Global assembly process
-            for i = 1:4
-                for j = 1:4
-                    K(LM(i, e), LM(j, e))=K(LM(i, e), LM(j, e)) + ke(i, j);
-                end
-                P(LM(i, e))=P(LM(i, e))+pe(i);
-            end
-        end
+            %for i = 1:4
+            %   for j = 1:4
+            %       K(LM(i, e), LM(j, e)) = K(LM(i, e), LM(j, e)) + ke(i, j);
+            %   end
+            %   P(LM(i, e))=P(LM(i, e))+pe(i);
+            %end
 
+            % Using vectors instead of FOR loops
+            K(LM(1:4, e), LM(1:4, e)) = K(LM(1:4, e), LM(1:4, e)) + ke;
+            P(LM(1:4, e)) = P(LM(1:4, e)) + pe;
+        end
+      
         % Newton's method
         % Use only free DOF from the list of DOF to compute d
         delta_d = invChol_mex(K(freeDOF, freeDOF))*(F(freeDOF, 1)-P(freeDOF, 1));
-        %delta_d = pinv(K(freeDOF, freeDOF))*(F(freeDOF, 1)-P(freeDOF, 1));
         
         if(norm((F(freeDOF, 1)-P(freeDOF, 1))) <= tol)
             converged = 1;
@@ -132,18 +136,11 @@ else
     disp('Newton-Ralphson does not converge')
 end
 
-%toc about 0.08s
-
 
 % Plot result
-%tic
-
 % if ifplot == 1 && converged
 %     plot_result(ds, sb, h, l, PropertyTable);
 % end
-
-%toc about 0.02s
-
 end
 
 
@@ -176,12 +173,12 @@ pe_cont = calc_pe_cont(d_i_local, h, ti, MuT_e, AlphaT_e, GammaT_e);
 ke_cont = calc_ke_cont(d_i_local, h, ti, MuT_e, AlphaT_e, GammaT_e);
 
 pe = pe_beam + pe_cont;
-
 % modify element internal force vector based on FBG
 FBG_idx_r = find(e == AA_er);
 if FBG_idx_r
     pe(2) = AA_crv(FBG_idx_r)*E*I;
 end
+
 ke = ke_beam + ke_cont;
 end
 

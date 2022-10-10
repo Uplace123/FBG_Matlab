@@ -2,27 +2,6 @@
 clear;
 clc;
 
-%% Close all pnet connection
-close_pnet();
-
-%% FEM needed input
-sb = 20;
-l = 145;
-Db = 0; % control input 1
-Kb = 0; % control input 2
-ti = 25;
-Nel = sb + l; % 1mm elements
-Mu = [0, 5e3];
-Alpha = [2, 3];
-Interval = {[-sb, 0], [0, l + 10]};
-needle_length = 165; % the 18G FBG needle length
-%AA_lcn_base = [65, 100, 135, 155]; % measured from base
-AA_lcn_base = [65,100,135];
-AA_lcn_tip = needle_length - AA_lcn_base; % measured from tip
-AA_lcn = sb + l - AA_lcn_tip; % measured from% testfile
-clear;
-clc;
-
 %% Add path
 addpath ../sm130_interrogator_matlab/
 addpath ../rawdata_process/
@@ -34,7 +13,7 @@ close_pnet();
 
 %% FEM needed input
 sb = 20;
-l = 145;
+l = 45;
 Db = 0; % control input 1
 Kb = 0; % control input 2
 ti = 25;
@@ -43,9 +22,9 @@ Mu = [0, 0e3];
 Alpha = [2, 3];
 Interval = {[-sb, 0], [0, l + 10]};
 needle_length = 165; % the 18G FBG needle length
-AA_lcn_base = [65, 100, 135]; % measured from base
+AA_lcn_base = [65, 100, 135]; % measured from base, skipping the AA near tip due to poor readings
 AA_lcn_tip = needle_length - AA_lcn_base; % measured from tip
-AA_lcn = sb + l - AA_lcn_tip; % measured from sbf
+AA_lcn = sb + l - AA_lcn_tip; % measured from sb
 save("plot_params.mat",'sb','l','Db','Kb','ti','Nel','Mu','Alpha','Interval','AA_lcn_base');
 
 %% FBG information
