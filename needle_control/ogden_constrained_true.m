@@ -4,15 +4,22 @@ function [ds, ks] = ogden_constrained_true(sb, l, Db, Kb, ti, Nel , Mu, Alpha)
 % with load stepping
 % Yanzhou Wang
 % Dec 8 2021
-
+addpath ../needle_FEM_realtime/WYZ_FEM/ 
 %% Initialization
 % Add Cholesky inverse
 % addpath(genpath('./invChol/'));
 
 % Constants
 L = sb + l;
-FEM_params;
 % Kb = -Db/(sb + rcm);
+
+
+%FEM_params;
+E = 250*1000;
+OD = 1.27;
+I = pi/4*(OD/2)^4; % in mm^4
+ifplot = 1;
+
 
 Interval = {[-sb, 0]; [0, l]};
 MuT = [0; Mu]*10^-6; % Pa, but in mm^2; 1Pa = 1e-6 N/mm^2; 1kPa = 1e-3 N/mm^2
@@ -109,19 +116,19 @@ ds = extract_dist_from_d(d);
 ks = extract_slop_from_d(d);
 
 %% Display of final result
-if converged
-    %disp('Newton-Ralphson converged');
-else
-    %disp('Newton-Ralphson does not converge')
-end
-% toc
-
-% Plot result
-if ifplot == 1 && converged
-    plot_result(ds, sb, h, l, Nel, PropertyTable);
-end
-
-end
+% if converged
+%     %disp('Newton-Ralphson converged');
+% else
+%     %disp('Newton-Ralphson does not converge')
+% end
+% % toc
+% 
+% % Plot result
+% if ifplot == 1 && converged
+%     plot_result(ds, sb, h, l, Nel, PropertyTable);
+% end
+% 
+% end
 
 %% Defined helper functions
 % Look up material properties at given location
@@ -243,40 +250,41 @@ N_zeta_zeta = [3*zeta/2, ...
 end
 
 
-%% Defined auxiliary functions
-function plot_result(d, sb, h, l, Nel, PropertyTable)
-% Plotting needle shape
-x = -sb:h:l;
-figure('Name', sprintf('FEM Solution with Load Stepping'));
-plt = plot(x, rand(1, size(x, 2)), 'k-');
-% ds = zeros(Nel + 1, 1);
-% for i = 1:(Nel + 1)
-%     ds(i) = d(2*i - 1) ;
+% %% Defined auxiliary functions
+% function plot_result(d, sb, h, l, Nel, PropertyTable)
+% % Plotting needle shape
+% x = -sb:h:l;
+% figure('Name', sprintf('FEM Solution with Load Stepping'));
+% plt = plot(x, rand(1, size(x, 2)), 'k-');
+% % ds = zeros(Nel + 1, 1);
+% % for i = 1:(Nel + 1)
+% %     ds(i) = d(2*i - 1) ;
+% % end
+% grid on;
+% set(plt, 'YData', d);
+% axis equal;
+% 
+% % Plotting patches
+% intervals = PropertyTable.Interval;
+% num_inter = size(intervals, 1);
+% Ps = [];
+% titles = [];
+% Py_Lims = get(gca, 'YLim');
+% for j = 1:num_inter
+%     Px = [intervals{j}(1), intervals{j}(2), intervals{j}(2), intervals{j}(1)];
+%     Py = [Py_Lims(1), Py_Lims(1), Py_Lims(2), Py_Lims(2)];
+%     if j == 1
+%         Ps = patch(Px, Py, 'w', 'FaceAlpha', 0.2);
+%     else
+%         Ps = [Ps, patch(Px, Py, j/num_inter, 'FaceAlpha', 0.2)];
+%     end
+%     titles = [titles; sprintf("Mu_{T%d} = %.0f Pa, Alpha_{T%d} = %.2f, Gamma_{T%d} = %.2f", ...
+%         j - 1, PropertyTable.MuT(j)*10^6, ...
+%         j - 1, PropertyTable.AlphaT(j), ...
+%         j - 1, PropertyTable.GammaT(j))];
 % end
-grid on;
-set(plt, 'YData', d);
-axis equal;
+% legend(Ps, titles);
+% axis tight
+% end
 
-% Plotting patches
-intervals = PropertyTable.Interval;
-num_inter = size(intervals, 1);
-Ps = [];
-titles = [];
-Py_Lims = get(gca, 'YLim');
-for j = 1:num_inter
-    Px = [intervals{j}(1), intervals{j}(2), intervals{j}(2), intervals{j}(1)];
-    Py = [Py_Lims(1), Py_Lims(1), Py_Lims(2), Py_Lims(2)];
-    if j == 1
-        Ps = patch(Px, Py, 'w', 'FaceAlpha', 0.2);
-    else
-        Ps = [Ps, patch(Px, Py, j/num_inter, 'FaceAlpha', 0.2)];
-    end
-    titles = [titles; sprintf("Mu_{T%d} = %.0f Pa, Alpha_{T%d} = %.2f, Gamma_{T%d} = %.2f", ...
-        j - 1, PropertyTable.MuT(j)*10^6, ...
-        j - 1, PropertyTable.AlphaT(j), ...
-        j - 1, PropertyTable.GammaT(j))];
 end
-legend(Ps, titles);
-axis tight
-end
-

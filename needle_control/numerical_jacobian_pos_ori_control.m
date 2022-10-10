@@ -1,6 +1,7 @@
 clear
-close all;
+clc;
 
+addpath ../needle_FEM_realtime/WYZ_FEM/ 
 %% FEM Parameters
 S.sb = 20;
 S.l = 40;
@@ -8,8 +9,7 @@ S.ti = 25;
 S.Nel = 20;
 S.Mu = 3000;
 S.Alpha = 8;
-S.function = @ogden_constrained_true;
-
+S.function = @FBG_integrated_FEM_Ogden_UTru;
 %% Control and ODE Parameters
 % Requires needle tip position and orientation as feedback
 
@@ -22,41 +22,42 @@ S.function = @ogden_constrained_true;
 
 S.xd = [1; -0.1]; % desired tip position and orientation
 S.Kp = diag([2, 2]); % proportional gain -> too large can result in non-converging FEM
-tspan = [0, 5]; % simulation time span
+tspan = [0, 1]; % simulation time span
 x0 = zeros(2, 1); % initial tip position and orientation
 u0 = zeros(2, 1); % initial base position and orientation
 ic = [x0; u0]; % initial conditions
 
 %% Simulation and Plotting
-[t, xu] = ode45(@(t, xu) sys_ode(t, xu, S), tspan, ic, []);
+[t, xu] = ode45(@(t, xu) sys_ode(t, xu, S), tspan, ic);
 
-% Plot outputs
-f1 = figure;
-plot(t, xu(:, 1), t, xu(:, 2));
-legend('Tip Pos', 'Tip Ori')
-xlabel('Time (s)')
-title('Needle Tip States')
-% Plot base maneuvers
-f2 = figure;
-plot(t, xu(:, 3), t, xu(:, 4));
-legend('Base Pos', 'Base Ori')
-xlabel('Time (s)')
-title('Needle Base Maneuvers')
-% Plot needle shapes
-f3 = figure;
-m = linspace(-S.sb, S.l, S.Nel + 1);
-plt = plot(m, rand(1, S.Nel + 1), 'k-', 'LineWidth', 2);
-xlabel('x (mm)');
-ylabel('y (mm)');
-title('Needle Shape')
-for i = 1:length(t)
-[ds, ~] = S.function(S.sb, S.l, xu(i, 3), xu(i, 4), S.ti, S.Nel, S.Mu, S.Alpha);
-axis equal
-grid on
-set(plt, 'YData', ds);
-drawnow;
-pause(0.2);
-end
+
+% % Plot outputs
+% f1 = figure;
+% plot(t, xu(:, 1), t, xu(:, 2));
+% legend('Tip Pos', 'Tip Ori')
+% xlabel('Time (s)')
+% title('Needle Tip States')
+% % Plot base maneuvers
+% f2 = figure;
+% plot(t, xu(:, 3), t, xu(:, 4));
+% legend('Base Pos', 'Base Ori')
+% xlabel('Time (s)')
+% title('Needle Base Maneuvers')
+% % Plot needle shapes
+% f3 = figure;
+% m = linspace(-S.sb, S.l, S.Nel + 1);
+% plt = plot(m, rand(1, S.Nel + 1), 'k-', 'LineWidth', 2);
+% xlabel('x (mm)');
+% ylabel('y (mm)');
+% title('Needle Shape')
+% for i = 1:length(t)
+% [ds, ~] = S.function(S.sb, S.l, xu(i, 3), xu(i, 4), S.ti, S.Nel, S.Mu, S.Alpha);
+% axis equal
+% grid on
+% set(plt, 'YData', ds);
+% drawnow;
+% pause(0.2);
+% end
 %% Auxiliary Functions
 % System ODE
 function dxudt = sys_ode(t, xu, S)
