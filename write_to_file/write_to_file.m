@@ -24,7 +24,9 @@ interrogator = ini_interrogator('IPaddress','192.168.1.11','Port',1852,'ReadTime
 
 disp("press ENTER to record the Reference data...");
 pause;
+sheetname = 'refdata';
 RefData = mean(Read_interrogator(20,2,4,interrogator));
+writematrix(RefData,filename_rawdata,'sheet',sheetname);
 disp("done!");
 
 
