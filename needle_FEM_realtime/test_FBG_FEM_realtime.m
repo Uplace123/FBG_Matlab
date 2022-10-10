@@ -13,12 +13,12 @@ close_pnet();
 
 %% FEM needed input
 sb = 20;
-l = 45;
+l = 145;
 Db = 0; % control input 1
 Kb = 0; % control input 2
 ti = 25;
 Nel = sb + l; % 1mm elements
-Mu = [0, 0e3];
+Mu = [0, 5e3];
 Alpha = [2, 3];
 Interval = {[-sb, 0], [0, l + 10]};
 needle_length = 165; % the 18G FBG needle length

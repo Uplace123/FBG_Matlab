@@ -37,7 +37,7 @@ if a == 0
     fwrite(fid, ds, 'double');
     fwrite(fid, ks, 'double');
     fwrite(fid, xs, 'double');
-    fwrite(fid, curvature, 'double');
+    fwrite(fid, curvatures, 'double');
     fclose(fid);
 end
 
