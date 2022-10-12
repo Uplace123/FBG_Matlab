@@ -101,6 +101,8 @@ while(1)
 
     disp(u(1));
     % get current needle shape, tip location
+    Db = u(1);
+    Kb = u(2);
     [ds, ks, xs] = FBG_FEM_realtime(sb, l, Db, Kb, ti, Nel, Mu, Alpha, Interval,...
                                     NumChannel,NumAA,interrogator,RefData,AA_lcn);
     
