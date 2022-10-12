@@ -67,6 +67,8 @@ plt2 = plot(xs(index_aa+1), rand(1, size(index_aa, 2)), 'r*', 'Parent', gca,'Lin
 hold on
 plt3 = plot(xs(index_tip+1), rand(1, size(index_tip, 2)), 'b*', 'Parent', gca,'LineWidth', 5);
 hold on
+plt4 = plot(xs(1),rand(1),'r*','Parent',gca,'LineWidth',5);
+hold on
 
 % plot reference curves
 % offset = 35;
@@ -83,6 +85,7 @@ hold on
 
 
 tip_text = text(0,0,"",'FontSize',25,'Parent',gca);
+base_text = text(0,0,"",'FontSize',25,'Parent',gca);
 AA1_text = text(10,-40,"",'FontSize',25,'Parent',gca);
 AA2_text = text(40,-40,"",'FontSize',25,'Parent',gca);
 AA3_text = text(70,-40,"",'FontSize',25,'Parent',gca);
@@ -108,15 +111,19 @@ while 1
     
     Y_AA = m.Data.ds(index_aa + 1);
     Y_tip = m.Data.ds(index_tip + 1);
+    Y_base = m.Data.ds(1);
     % plot AA area and tip
     set(plt2, 'YData', Y_AA);
     set(plt3, 'YData', Y_tip);
+    set(plt4, 'YData',Y_base);
 
 
     % tip deflection
     str = "Tip deflection: "+ newline + num2str(Y_tip)+"mm";
+    str2 = num2str(Y_base) + "mm";
     %tip_text = text(index_tip-2,Y_tip+2,cellstr(str),'FontSize',15);
-    set(tip_text,'Position',[xs(index_tip+1)+2,Y_tip], 'String', str);
+    set(tip_text,'Position',[xs(index_tip+1),Y_tip-10], 'String', str);
+    set(base_text,'Position',[xs(1)-2,Y_base],'String',str2 );
     % curvature at AA
     for i = 1:NumAA
         switch i

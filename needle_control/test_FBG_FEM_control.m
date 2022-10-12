@@ -21,10 +21,11 @@ close_pnet();
 
 %% FEM needed input
 sb = 20;
-l = 145;
+%l = 145;
+l = 45;
 ti = 25;
 Nel = sb + l; % 1mm elements
-Mu = [0, 5e3];
+Mu = [0, 0];
 Alpha = [2, 3];
 Interval = {[-sb, 0], [0, l + 10]};
 needle_length = 165; % the 18G FBG needle length
@@ -38,8 +39,8 @@ NumChannel = 2;
 NumAA = 4; % this should keep tha same as needle
 
 %% control and ode parameters
-xd = [10; 0]; % desired tip position and orientation
-Kp = diag([0.5, 0.5]); % proportional gain -> too large can result in non-converging FEM
+xd = [1; -0.1]; % desired tip position and orientation
+Kp = diag([2, 2]); % proportional gain -> too large can result in non-converging FEM
 x0 = zeros(2, 1); % initial tip position and orientation
 u0 = zeros(2, 1); % initial base position and orientation
 ic = [x0; u0]; % initial conditions
@@ -91,8 +92,8 @@ RefData = mean(Read_interrogator(20,2,NumAA,interrogator));
 
 %% Main loop
 while(1)
-    % get du for next step
     tic
+    % get du for next step
     du = numerical_jacobian_pos_ori_control(xd,Kp,ic,sb, l, ti, Nel, Mu, Alpha,...
                                                 Interval,NumChannel,NumAA,interrogator,...
                                                 RefData,AA_lcn);
@@ -101,8 +102,8 @@ while(1)
 
     disp(u(1));
     % get current needle shape, tip location
-    Db = u(1);
-    Kb = u(2);
+    Db = Db + u(1);
+    Kb = Kb + u(2);
     [ds, ks, xs] = FBG_FEM_realtime(sb, l, Db, Kb, ti, Nel, Mu, Alpha, Interval,...
                                     NumChannel,NumAA,interrogator,RefData,AA_lcn);
     
@@ -111,12 +112,10 @@ while(1)
     ut = [ds(1);ks(1)]; % current base position and orientation
     ic = [xt;ut];
 
-    toc
-
     % story data for plotting
     m.Data.ds(sz_ds(1), 1:sz_ds(2)) = ds;
     m.Data.ks(sz_ks(1), 1:sz_ks(2)) = ks;
     m.Data.xs(sz_xs(1), 1:sz_xs(2)) = xs;
     m.Data.curvature(1:sz_curvatures(1),1:sz_curvatures(2)) = curvatures;
-
+    toc
 end
