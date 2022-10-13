@@ -98,9 +98,9 @@ xlabel("length",'FontSize',30);
 ylabel("deflection",'FontSize',30);
 set(gca, "FontSize", 30);
 
-axis equal;
-xlim([-sb, l+20]);
-ylim([-60,60]);
+%axis equal;
+xlim([-sb-20, l+20]);
+ylim([-40,40]);
 % plot some reference curve
 % todo
 
@@ -122,8 +122,8 @@ while 1
     str = "Tip deflection: "+ newline + num2str(Y_tip)+"mm";
     str2 = num2str(Y_base) + "mm";
     %tip_text = text(index_tip-2,Y_tip+2,cellstr(str),'FontSize',15);
-    set(tip_text,'Position',[xs(index_tip+1),Y_tip-10], 'String', str);
-    set(base_text,'Position',[xs(1)-2,Y_base],'String',str2 );
+    set(tip_text,'Position',[xs(index_tip+1)+3,Y_tip-5], 'String', str);
+    set(base_text,'Position',[xs(1)-12,Y_base-3],'String',str2 );
     % curvature at AA
     for i = 1:NumAA
         switch i

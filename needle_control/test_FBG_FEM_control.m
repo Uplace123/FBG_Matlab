@@ -14,10 +14,13 @@ addpath ../needle_FEM_realtime/
 % for needle control
 
 % for motor control
+addpath ./Galil_MATLAB_API/
 
-
-%% Close all pnet connection
+%% interrogator and Galil motor controller params
 close_pnet();
+interrogator_ip = '192.168.1.11';
+interrogator_port = 1852;
+motor_controller_ip = '192.168.1.201';
 
 %% FEM needed input
 sb = 20;
@@ -39,7 +42,7 @@ NumChannel = 2;
 NumAA = 4; % this should keep tha same as needle
 
 %% control and ode parameters
-xd = [1; -0.1]; % desired tip position and orientation
+xd = [15; -0.1]; % desired tip position and orientation
 Kp = diag([2, 2]); % proportional gain -> too large can result in non-converging FEM
 x0 = zeros(2, 1); % initial tip position and orientation
 u0 = zeros(2, 1); % initial base position and orientation
@@ -52,6 +55,10 @@ Kb = 0; % control input 2
 save("plot_params.mat",'sb','l','ti','Nel','Mu','Alpha','Interval','AA_lcn_base','Db','Kb');
 
 %% Initialization, data and memory
+% run ini_interrogator.m
+interrogator = ini_interrogator('IPaddress',interrogator_ip,'Port',interrogator_port,'ReadTimeout',0.1);
+% run ini_motor_controller.m
+g = ini_motor_controller(motor_controller_ip);
 curvatures = zeros(NumAA,2); %num_AA * 2
 curvatures_xy = curvatures(:,1);
 curvatures_xz = curvatures(:,2);
@@ -85,25 +92,30 @@ m = memmapfile(filename, 'Writable',true, 'Format', ...
 
 %% Read interrogator data for FBG initialization
 RefData = [];
-% run ini_interrogator.m
-interrogator = ini_interrogator('IPaddress','192.168.1.11','Port',1852,'ReadTimeout',0.1);
 % read the reference data
 RefData = mean(Read_interrogator(20,2,NumAA,interrogator));
 
 %% Main loop
 while(1)
-    tic
+    %tic
     % get du for next step
     du = numerical_jacobian_pos_ori_control(xd,Kp,ic,sb, l, ti, Nel, Mu, Alpha,...
-                                                Interval,NumChannel,NumAA,interrogator,...
-                                                RefData,AA_lcn);
+                                            Interval,NumChannel,NumAA,interrogator,...
+                                             RefData,AA_lcn);
     % motor gain
-    u = du * dt;
-
-    disp(u(1));
+    [dx,dy,dk] = robot_geometric(du(1)*dt,du(2)*dt);
+    % control motor
+    % current dont use dk
+    disp(dx);
+    Input_RelPos_X = round(dx*1000);
+    Input_RelPos_Y = round(dy*1000);
+    give_pos=strcat('PR ,,',num2str(Input_RelPos_Y),',',  num2str(Input_RelPos_X), ',');
+    galil_command(g, give_pos);
+    galil_command(g, 'BG CD');
+    galil_command(g, 'MC CD');
     % get current needle shape, tip location
-    Db = Db + u(1);
-    Kb = Kb + u(2);
+    Db = Db + du(1)*dt;
+    Kb = Kb + du(2)*dt;
     [ds, ks, xs] = FBG_FEM_realtime(sb, l, Db, Kb, ti, Nel, Mu, Alpha, Interval,...
                                     NumChannel,NumAA,interrogator,RefData,AA_lcn);
     
@@ -112,10 +124,21 @@ while(1)
     ut = [ds(1);ks(1)]; % current base position and orientation
     ic = [xt;ut];
 
+    % calculate error
+    e = norm(xd - xt)
+    if e <= 1e-3
+        disp("done!")
+        % go back to home
+        galil_command(g, 'PA ,,0,0,');
+        galil_command(g, 'BG CD');
+        galil_disconnect(g)
+        break
+    end
+
     % story data for plotting
     m.Data.ds(sz_ds(1), 1:sz_ds(2)) = ds;
     m.Data.ks(sz_ks(1), 1:sz_ks(2)) = ks;
     m.Data.xs(sz_xs(1), 1:sz_xs(2)) = xs;
     m.Data.curvature(1:sz_curvatures(1),1:sz_curvatures(2)) = curvatures;
-    toc
+    %toc
 end
