@@ -13,11 +13,11 @@ res = galil_command(g, [char(18), char(22)]);
 % galil_command(g, 'DC,5000,3000,3000,3000');
 % galil_command(g, 'SP,30000,5000,5000,5000');
 
-galil_command(g, 'KP ,,378,220,');
-galil_command(g, 'KI ,,145,84,');
-galil_command(g, 'KD ,,2831,1643,');
-galil_command(g, 'AC ,,5000,5000,');
-galil_command(g, 'DC ,,5000,5000,');
-galil_command(g, 'SP ,,8000,8000,');
+galil_command(g, 'KP ,,378,220,10');
+galil_command(g, 'KI ,,145,84,6');
+galil_command(g, 'KD ,,2831,1643,64');
+galil_command(g, 'AC ,,5000,5000,50000');
+galil_command(g, 'DC ,,5000,5000,50000');
+galil_command(g, 'SP ,,8000,8000,100000');
 
 end

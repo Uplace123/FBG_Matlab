@@ -23,13 +23,14 @@ interrogator_port = 1852;
 motor_controller_ip = '192.168.1.201';
 
 %% FEM needed input
-sb = 20;
+sb = 42.5;
 %l = 145;
-l = 45;
+l = 42.5;
 ti = 25;
 Nel = sb + l; % 1mm elements
-Mu = [0, 0];
-Alpha = [2, 3];
+%Mu = [0, 1.2175e4];
+Mu = [0,0];
+Alpha = [2, -1];
 Interval = {[-sb, 0], [0, l + 10]};
 needle_length = 165; % the 18G FBG needle length
 %AA_lcn_base = [65, 100, 135]; % measured from base, skipping the AA near tip due to poor readings
@@ -42,12 +43,12 @@ NumChannel = 2;
 NumAA = 4; % this should keep tha same as needle
 
 %% control and ode parameters
-xd = [15; -0.1]; % desired tip position and orientation
+xd = [0; -0.1]; % desired tip position and orientation
 Kp = diag([2, 2]); % proportional gain -> too large can result in non-converging FEM
 x0 = zeros(2, 1); % initial tip position and orientation
 u0 = zeros(2, 1); % initial base position and orientation
 ic = [x0; u0]; % initial conditions
-dt = 0.1;
+dt = 0.05;
 Db = 0; % control input 1
 Kb = 0; % control input 2
 
@@ -94,7 +95,9 @@ m = memmapfile(filename, 'Writable',true, 'Format', ...
 RefData = [];
 % read the reference data
 RefData = mean(Read_interrogator(20,2,NumAA,interrogator));
-
+total_y = 0;
+total_k = 0;
+total_x = 0;
 %% Main loop
 while(1)
     %tic
@@ -103,19 +106,20 @@ while(1)
                                             Interval,NumChannel,NumAA,interrogator,...
                                              RefData,AA_lcn);
     % motor gain
-    [dx,dy,dk] = robot_geometric(du(1)*dt,du(2)*dt);
+    [dx,dy,dr,Db,Kb] = robot_geometric(du(1)*dt,du(2)*dt,Db,Kb);
+    total_y = total_y + dy;
+    total_k = total_k + dr;
+    total_x = total_x + dx;
     % control motor
     % current dont use dk
-    disp(dx);
-    Input_RelPos_X = round(dx*1000);
-    Input_RelPos_Y = round(dy*1000);
-    give_pos=strcat('PR ,,',num2str(Input_RelPos_Y),',',  num2str(Input_RelPos_X), ',');
+    Input_RelPos_X = -round(dx*1000);
+    Input_RelPos_Y = -round(dy*1000);
+    Input_Rotation = round(dr*7031.25);
+    give_pos=strcat('PR ,,',num2str(Input_RelPos_Y),',',  num2str(Input_RelPos_X), ',',num2str(Input_Rotation));
     galil_command(g, give_pos);
-    galil_command(g, 'BG CD');
-    galil_command(g, 'MC CD');
-    % get current needle shape, tip location
-    Db = Db + du(1)*dt;
-    Kb = Kb + du(2)*dt;
+    galil_command(g, 'BG CDE');
+    galil_command(g, 'MC CDE');
+    
     [ds, ks, xs] = FBG_FEM_realtime(sb, l, Db, Kb, ti, Nel, Mu, Alpha, Interval,...
                                     NumChannel,NumAA,interrogator,RefData,AA_lcn);
     
@@ -123,15 +127,21 @@ while(1)
     xt = [ds(end);ks(end)]; % current tip position and orientation
     ut = [ds(1);ks(1)]; % current base position and orientation
     ic = [xt;ut];
-
     % calculate error
-    e = norm(xd - xt)
+    e = norm(xd - xt);
     if e <= 1e-3
-        disp("done!")
+        disp("done!Enter to go back!");
+        disp(total_y);
+        disp(total_k);
+        disp(total_x);
+        disp(Db);
+        %disp(Kb);
+        pause();
         % go back to home
-        galil_command(g, 'PA ,,0,0,');
-        galil_command(g, 'BG CD');
-        galil_disconnect(g)
+        galil_command(g, 'PA ,,0,0,0');
+        galil_command(g, 'BG CDE');
+        galil_disconnect(g);
+        clear g;
         break
     end
 
@@ -142,3 +152,5 @@ while(1)
     m.Data.curvature(1:sz_curvatures(1),1:sz_curvatures(2)) = curvatures;
     %toc
 end
+
+clear g
