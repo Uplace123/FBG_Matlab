@@ -28,8 +28,8 @@ sb = 42.5;
 l = 42.5;
 ti = 25;
 Nel = sb + l; % 1mm elements
-%Mu = [0, 1.2175e4];
-Mu = [0,0];
+Mu = [0, 1.2175e4];
+%Mu = [0,0];
 Alpha = [2, -1];
 Interval = {[-sb, 0], [0, l + 10]};
 needle_length = 165; % the 18G FBG needle length
@@ -43,12 +43,12 @@ NumChannel = 2;
 NumAA = 4; % this should keep tha same as needle
 
 %% control and ode parameters
-xd = [0; -0.1]; % desired tip position and orientation
+xd = [1; 0.1]; % desired tip position and orientation
 Kp = diag([2, 2]); % proportional gain -> too large can result in non-converging FEM
 x0 = zeros(2, 1); % initial tip position and orientation
 u0 = zeros(2, 1); % initial base position and orientation
 ic = [x0; u0]; % initial conditions
-dt = 0.05;
+dt = 0.01;
 Db = 0; % control input 1
 Kb = 0; % control input 2
 
@@ -129,12 +129,14 @@ while(1)
     ic = [xt;ut];
     % calculate error
     e = norm(xd - xt);
+    disp("error:");
+    disp(e);
     if e <= 1e-3
         disp("done!Enter to go back!");
-        disp(total_y);
-        disp(total_k);
-        disp(total_x);
-        disp(Db);
+        %disp(total_y);
+        %disp(total_k);
+        %disp(total_x);
+        %disp(Db);
         %disp(Kb);
         pause();
         % go back to home
