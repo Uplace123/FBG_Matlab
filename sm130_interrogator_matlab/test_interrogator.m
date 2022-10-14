@@ -1,7 +1,7 @@
 clear;
 clc;
 
-% untested code
+% tested code
 % run ini_interrogator.m
 interrogator = ini_interrogator('IPaddress','192.168.1.11','Port',1852,'ReadTimeout',0.1);
 

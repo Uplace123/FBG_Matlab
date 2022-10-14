@@ -11,7 +11,6 @@ function [ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(sb, l, Db, Kb, ti, Nel, Mu
 
 % Add Cholesky inverse
 
-
 % Constants
 L = sb + l;
 FEM_params;

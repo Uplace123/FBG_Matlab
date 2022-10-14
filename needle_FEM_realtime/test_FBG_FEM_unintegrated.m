@@ -4,6 +4,7 @@ clc;
 
 %% Add path
 addpath ../sm130_interrogator_matlab/
+addpath ../rawdata_process/
 addpath ./WYZ_FEM
 addpath ./WYZ_FEM/invChol/
 
@@ -24,7 +25,6 @@ needle_length = 165; % the 18G FBG needle length
 AA_lcn_base = [65, 100, 135]; % measured from base, skipping the AA near tip due to poor readings
 AA_lcn_tip = needle_length - AA_lcn_base; % measured from tip
 AA_lcn = sb + l - AA_lcn_tip; % measured from sb
-% save params for plotting use
 save("plot_params.mat",'sb','l','Db','Kb','ti','Nel','Mu','Alpha','Interval','AA_lcn_base');
 
 %% FBG information
@@ -63,8 +63,11 @@ m = memmapfile(filename, 'Writable',true, 'Format', ...
     'double', sz_curvatures, 'curvature';
     });
 
+
+
 %% Read interrogator data for FBG initialization
 RefData = [];
+RawData = [];
 % run ini_interrogator.m
 interrogator = ini_interrogator('IPaddress','192.168.1.11','Port',1852,'ReadTimeout',0.1);
 % read the reference data
@@ -73,15 +76,23 @@ RefData = mean(Read_interrogator(20,2,NumAA,interrogator));
 %% Main loop
 while 1
     tic
-    [ds, ks, xs] = FBG_FEM_realtime(sb, l, Db, Kb, ti, Nel, Mu, Alpha, Interval,...
-        NumChannel,NumAA,interrogator,RefData,AA_lcn);
-    % propertytable interval mut alphaT GammaT
     
-    % story data for plotting
+    RawData = Read_interrogator(1,NumChannel,NumAA,interrogator);
+    %toc about 0.01s
+    curvatures = data_process(RawData,RefData,NumChannel,NumAA);
+    curvatures_xy = curvatures(:,1);
+    curvatures_xz = curvatures(:,2);
+    %disp(curvatures_xz);
+    %toc about 0.01s
+    [ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(sb, l, Db, Kb, ti, Nel, Mu, ...
+                                             Alpha, Interval, curvatures_xz, AA_lcn);
+
+    %toc about 0.09s
+
+    % propertytable interval mut alphaT GammaT
     m.Data.ds(sz_ds(1), 1:sz_ds(2)) = ds;
     m.Data.ks(sz_ks(1), 1:sz_ks(2)) = ks;
     m.Data.xs(sz_xs(1), 1:sz_xs(2)) = xs;
     m.Data.curvature(1:sz_curvatures(1),1:sz_curvatures(2)) = curvatures;
     toc % about 0.09s
-
 end
