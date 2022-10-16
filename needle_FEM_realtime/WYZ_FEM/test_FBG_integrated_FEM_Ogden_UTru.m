@@ -1,4 +1,7 @@
 %% FBG integrated FEM Ogden UTru test
+% Needle-tissue interaction FEM while taking into account local curvature
+% information returned from FBG sensor.
+
 close all
 %% Initialization
 sb = 5;
@@ -35,7 +38,7 @@ freeDOF = DOF;
 freeDOF(EBC_idx) = [];
 
 % Algorithm-specific constants
-max_inner_iter = 5; % Max number of iterations for Newton's method
+max_inner_iter = 15; % Max number of iterations for Newton's method
 max_outer_iter = 10; % Max number of iterations for load stepping
 inner_iter = 0; % Initialize inner_iter counter
 outer_iter = 0; % Initialize outer_iter counter
@@ -56,8 +59,8 @@ for e = 1:Nel
 end
 
 % Curvature inputs from FBG
-curvatures = 3*ones(1, Nel);
-AA_lcn = 1:3:Nel;
+curvatures = 1*ones(1, Nel);
+AA_lcn = 1:2:Nel;
 AA_crv = 1e-3 * curvatures'; % curvature at AAs in mm
 AA_er = round(AA_lcn./h) + 1; % elements where the left-moment is fixed
 AA_crv = AA_crv(AA_er >= 0); % curvatures that have negative element indices are skipped
