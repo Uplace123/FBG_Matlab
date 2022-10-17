@@ -5,9 +5,9 @@ close all;
 S.sb = 20;
 S.l = 40;
 S.ti = 25;
-S.Nel = 20;
-S.Mu = 3000;
-S.Alpha = 8;
+S.Nel = S.sb + S.l;
+S.Mu = 1.2715e+04;
+S.Alpha = -1;
 S.function = @ogden_constrained_true;
 
 %% Control and ODE Parameters
@@ -20,7 +20,7 @@ S.function = @ogden_constrained_true;
 % For actual control implementation with constant time steps, the control
 % is simply u = du*dt
 
-S.xd = [1; -0.1]; % desired tip position and orientation
+S.xd = [1; 0.1]; % desired tip position and orientation
 S.Kp = diag([2, 2]); % proportional gain -> too large can result in non-converging FEM
 tspan = [0, 5]; % simulation time span
 x0 = zeros(2, 1); % initial tip position and orientation
