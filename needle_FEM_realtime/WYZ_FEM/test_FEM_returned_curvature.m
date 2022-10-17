@@ -1,47 +1,53 @@
-function [ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(sb, l, Db, Kb, ti, Nel, Mu, Alpha, Interval, curvatures, AA_lcn)
+%% FBG integrated FEM Ogden UTru test
+% Provided that the FEM agrees with the ground truth CT scan, use converged
+% FEM solution to reverse-calculate local curvature information at given AA
+% locations
+% The calculated curvatures are stored as a variable 'curvatures'
+
+close all
 %% Initialization
-% sb = 0;
-% l = 165;
-% Db = 0;
-% Kb = 0;
-% ti = 25;
-% Nel = sb + l;
-% Mu = 0;
-% Alpha = 5;
+sb = 5;
+l = 40;
+Db = 5;
+Kb = 0;
+ti = 25;
+Nel = sb + l;
+Mu = 5e3;
+Alpha = 5;
+E = 250*1000; % 200GPa but in mm^2
+OD = 1.27;
+I = pi/4*(OD/2)^4; % in mm^4
+ifplot = 1;
 
 % Add Cholesky inverse
+addpath(genpath('./invCol/'))
 
 % Constants
 L = sb + l;
-FEM_params;
-% Kb = -Db/(sb + rcm);
-
-% Interval = {[-sb, 0]; [0, l]};
-MuT = Mu*10^-6; % Pa, but in mm^2; 1Pa = 1e-6 N/mm^2; 1kPa = 1e-3 N/mm^2
-AlphaT = Alpha; % need abs(alpha) > 1
+Interval = {[-sb, 0]; [0, l]};
+MuT = [0; Mu*10^-6]; % Pa, but in mm^2; 1Pa = 1e-6 N/mm^2; 1kPa = 1e-3 N/mm^2
+AlphaT = [-2; Alpha]; % need abs(alpha) > 1
 GammaT = zeros(size(MuT));
 PropertyTable = table(Interval, MuT, AlphaT, GammaT);
-% ti = 25; % Initial length of undeformed tissue. Will affect solution
 
-% FEM-specific constants
-% Nel = 10; % Total umber of elements
 Nen = 4; % Number of element DOF
 DOF = 1:(2*Nel + 2);
 nDOF = length(DOF);
 d = zeros(nDOF, 1); % Initial guess of solution
 h = L/Nel; % Finite element size
-EBC = [1; 2]; % Displacement and slope of first element left node is prescribed
+EBC_idx = [1; 2]; % Displacement and slope of first element left node is prescribed
 freeDOF = DOF;
-freeDOF(EBC) = [];
+freeDOF(EBC_idx) = [];
 
 % Algorithm-specific constants
-max_inner_iter = 5; % Max number of iterations for Newton's method
-max_outer_iter = 50; % Max number of iterations for load stepping
+max_inner_iter = 15; % Max number of iterations for Newton's method
+max_outer_iter = 10; % Max number of iterations for load stepping
 inner_iter = 0; % Initialize inner_iter counter
 outer_iter = 0; % Initialize outer_iter counter
-tol = 1e-3; % Convergence criterion
+tol = 1e-5; % Convergence criterion
 converged = 0;
 load_ratio = 1;
+EBC_des = [Db; Kb];
 EBC_cur = zeros(2, 1); % For load stepping
 EBC_converged = zeros(2, 1); % For load stepping from previously converged EBC
 
@@ -54,42 +60,34 @@ for e = 1:Nel
     LM(4, e) = 2*e + 2;
 end
 
-% Curvature inputs from FBG
-AA_crv = 1e-3 * curvatures'; % curvature at AAs in mm
+% FBG AA locations
+AA_lcn = 1:2:Nel - 2;
 AA_er = round(AA_lcn./h) + 1; % elements where the left-moment is fixed
 AA_crv = AA_crv(AA_er >= 0); % curvatures that have negative element indices are skipped
 AA_er = AA_er(AA_er >= 0); % elements that have negative indices are skipped
 
 %% FEM Main
 % Load stepping
-while (~all(EBC_cur == EBC)) && (outer_iter < max_outer_iter)
+while converged == 0 && (outer_iter < max_outer_iter)
     outer_iter = outer_iter + 1;
     inner_iter = 0;
     converged = 0;
-    EBC_cur = EBC_converged + load_ratio*EBC;
+    EBC_cur = EBC_converged + load_ratio*EBC_des;
     % FEM solution
     while inner_iter < max_inner_iter
         K = zeros(nDOF, nDOF);
         F = zeros(nDOF, 1);
         P = zeros(nDOF, 1);
         % Apply EBC
-        d(EBC) = [Db; Kb];
+        d(EBC_idx) = EBC_cur;
         % Loop over each element
         for e = 1:Nel
             % Get local nodal values from global d
             d_i_local = d(2*e - 1:2*e + 2);
             [ke, pe] = compute_element_matrix(d_i_local, ti, E, I, ...
-                PropertyTable, e, h, -sb, ...
-                AA_er, AA_crv);
+                PropertyTable, e, h, -sb);
 
             % Global assembly process
-            %for i = 1:4
-            %   for j = 1:4
-            %       K(LM(i, e), LM(j, e)) = K(LM(i, e), LM(j, e)) + ke(i, j);
-            %   end
-            %   P(LM(i, e))=P(LM(i, e))+pe(i);
-            %end
-
             % Using vectors instead of FOR loops
             K(LM(1:4, e), LM(1:4, e)) = K(LM(1:4, e), LM(1:4, e)) + ke;
             P(LM(1:4, e)) = P(LM(1:4, e)) + pe;
@@ -99,7 +97,7 @@ while (~all(EBC_cur == EBC)) && (outer_iter < max_outer_iter)
         % Use only free DOF from the list of DOF to compute d
         delta_d = invChol_mex(K(freeDOF, freeDOF))*(F(freeDOF, 1)-P(freeDOF, 1));
 
-        if(norm((F(freeDOF, 1)-P(freeDOF, 1))) <= tol)
+        if(norm((F(freeDOF, 1)-P(freeDOF, 1))) <= tol && all(abs(EBC_cur - EBC_des) <= tol))
             converged = 1;
             %fprintf("Converged at inner step %d, outer step %d\n", inner_iter + 1, outer_iter);
             break;
@@ -112,9 +110,10 @@ while (~all(EBC_cur == EBC)) && (outer_iter < max_outer_iter)
     if converged ~= 1
         load_ratio = 0.5*load_ratio;
         EBC_cur = zeros(2, 1);
-        % fprintf("No convergence. Decreasing load step\n");
+        disp("No convergence. Decreasing load step");
     else
         EBC_converged = EBC_cur;
+        % disp("Converged. Continuing load stepping");
     end
 end
 
@@ -130,7 +129,7 @@ end
 
 %% Display of final result
 if converged
-    %disp('Newton-Ralphson converged');
+    disp('Newton-Ralphson converged');
 else
     disp('Newton-Ralphson does not converge')
 end
@@ -139,8 +138,16 @@ end
 if ifplot == 1 && converged
     plot_result(ds, xs, PropertyTable);
 end
-end
 
+%% Calculate curvatures at AA locations based on converged FEM
+if converged
+    curvatures = zeros(size(AA_er));
+    for i = 1:length(AA_er)
+        d_AA_local = d(2*AA_er(i) - 1:2*AA_er(i) + 2);
+        pe_beam = calc_ke_beam(h, E, I)*d_AA_local;
+        curvatures(i) = pe_beam(2)/E/I;
+    end
+end
 
 %% Defined helper functions
 % Look up material properties at given location
@@ -158,8 +165,7 @@ end
 
 % Compute element stiffness matrix and internal force vector
 function [ke, pe] = compute_element_matrix(d_i_local, ti, E, I, ...
-    PropertyTable, e, h, x_begin, ...
-    AA_er, AA_crv)
+    PropertyTable, e, h, x_begin)
 % Find properties
 [MuT_e, AlphaT_e, GammaT_e] = lookup_property(PropertyTable, e, h, x_begin);
 % Calculate integrals
@@ -171,12 +177,6 @@ pe_cont = calc_pe_cont(d_i_local, h, ti, MuT_e, AlphaT_e, GammaT_e);
 ke_cont = calc_ke_cont(d_i_local, h, ti, MuT_e, AlphaT_e, GammaT_e);
 
 pe = pe_beam + pe_cont;
-% modify element internal force vector based on FBG
-FBG_idx_r = find(e == AA_er);
-if FBG_idx_r
-    pe(2) = AA_crv(FBG_idx_r)*E*I;
-end
-
 ke = ke_beam + ke_cont;
 end
 

@@ -1,5 +1,4 @@
 function du = numerical_jacobian_pos_ori_control(xd,Kp,ic,sb, l, ti, Nel, Mu, Alpha, Interval,NumChannel,NumAA,interrogator,RefData,AA_lcn)
-
 %% FEM and FBG Parameters
 S.sb = sb;
 S.l = l;
