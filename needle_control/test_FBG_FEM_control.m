@@ -116,9 +116,9 @@ while(1)
     Input_RelPos_Y = -round(dy*1000);
     Input_Rotation = round(dr*7031.25);
     give_pos=strcat('PR ,,',num2str(Input_RelPos_Y),',',  num2str(Input_RelPos_X), ',',num2str(Input_Rotation));
-%     galil_command(g, give_pos);
-%     galil_command(g, 'BG CDE');
-%     galil_command(g, 'MC CDE');
+    galil_command(g, give_pos);
+    galil_command(g, 'BG CDE');
+    galil_command(g, 'MC CDE');
     
     [ds, ks, xs] = FBG_FEM_realtime(sb, l, Db, Kb, ti, Nel, Mu, Alpha, Interval,...
                                     NumChannel,NumAA,interrogator,RefData,AA_lcn);
