@@ -23,12 +23,12 @@ interrogator_port = 1852;
 motor_controller_ip = '192.168.1.201';
 
 %% FEM needed input
-sb = 42.5;
+sb = 34.255;
 %l = 145;
-l = 42.5;
+l = 51.74;
 ti = 25;
-Nel = sb + l; % 1mm elements
-Mu = [0, 1.2175e4];
+Nel = round(sb + l); % 1mm elements
+Mu = [0, 1.2715e4];
 %Mu = [0,0];
 Alpha = [2, -1];
 Interval = {[-sb, 0], [0, l + 10]};
@@ -43,7 +43,7 @@ NumChannel = 2;
 NumAA = 4; % this should keep tha same as needle
 
 %% control and ode parameters
-xd = [1; 0.1]; % desired tip position and orientation
+xd = [-3; -0.15]; % desired tip position and orientation
 Kp = diag([2, 2]); % proportional gain -> too large can result in non-converging FEM
 x0 = zeros(2, 1); % initial tip position and orientation
 u0 = zeros(2, 1); % initial base position and orientation
@@ -116,9 +116,9 @@ while(1)
     Input_RelPos_Y = -round(dy*1000);
     Input_Rotation = round(dr*7031.25);
     give_pos=strcat('PR ,,',num2str(Input_RelPos_Y),',',  num2str(Input_RelPos_X), ',',num2str(Input_Rotation));
-    galil_command(g, give_pos);
-    galil_command(g, 'BG CDE');
-    galil_command(g, 'MC CDE');
+%     galil_command(g, give_pos);
+%     galil_command(g, 'BG CDE');
+%     galil_command(g, 'MC CDE');
     
     [ds, ks, xs] = FBG_FEM_realtime(sb, l, Db, Kb, ti, Nel, Mu, Alpha, Interval,...
                                     NumChannel,NumAA,interrogator,RefData,AA_lcn);
@@ -131,12 +131,12 @@ while(1)
     e = norm(xd - xt);
     disp("error:");
     disp(e);
-    if e <= 1e-3
+    if e <= 1e-5
         disp("done!Enter to go back!");
         %disp(total_y);
         %disp(total_k);
         %disp(total_x);
-        %disp(Db);
+        disp(Db);
         %disp(Kb);
         pause();
         % go back to home
