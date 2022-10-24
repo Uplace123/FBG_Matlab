@@ -23,9 +23,9 @@ interrogator_port = 1852;
 motor_controller_ip = '192.168.1.201';
 
 %% FEM needed input
-sb = 34.255;
+sb = 27.087;
 %l = 145;
-l = 51.74;
+l = 50.91;
 ti = 25;
 Nel = round(sb + l); % 1mm elements
 Mu = [0, 1.2715e4];
@@ -43,12 +43,12 @@ NumChannel = 2;
 NumAA = 4; % this should keep tha same as needle
 
 %% control and ode parameters
-xd = [-3; -0.15]; % desired tip position and orientation
+xd = [0; 0.1]; % desired tip position and orientation
 Kp = diag([2, 2]); % proportional gain -> too large can result in non-converging FEM
 x0 = zeros(2, 1); % initial tip position and orientation
 u0 = zeros(2, 1); % initial base position and orientation
 ic = [x0; u0]; % initial conditions
-dt = 0.01;
+dt = 0.02;
 Db = 0; % control input 1
 Kb = 0; % control input 2
 
@@ -131,13 +131,13 @@ while(1)
     e = norm(xd - xt);
     disp("error:");
     disp(e);
-    if e <= 1e-5
+    if e <= 1e-3
         disp("done!Enter to go back!");
         %disp(total_y);
         %disp(total_k);
         %disp(total_x);
-        disp(Db);
-        %disp(Kb);
+%         disp(Db);
+%         disp(Kb);
         pause();
         % go back to home
         galil_command(g, 'PA ,,0,0,0');
