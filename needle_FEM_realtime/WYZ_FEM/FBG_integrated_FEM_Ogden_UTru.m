@@ -135,10 +135,10 @@ else
     disp('Newton-Ralphson does not converge')
 end
 
-% Plot result
-if ifplot == 1 && converged
-    plot_result(ds, xs, PropertyTable);
-end
+% % Plot result
+% if ifplot == 1 && converged
+%     plot_result(ds, xs, PropertyTable);
+% end
 end
 
 

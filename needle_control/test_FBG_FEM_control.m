@@ -16,8 +16,11 @@ addpath ../needle_FEM_realtime/
 % for motor control
 addpath ./Galil_MATLAB_API/
 
-%% interrogator and Galil motor controller params
+%% Close all pnet connection
 close_pnet();
+FBG_switch = 0; % turn off FBG
+controller_switch = 0; % turn off controller
+%% interrogator and Galil motor controller params
 interrogator_ip = '192.168.1.11';
 interrogator_port = 1852;
 motor_controller_ip = '192.168.1.201';
@@ -34,7 +37,7 @@ Alpha = [2, -1];
 Interval = {[-sb, 0], [0, l + 10]};
 needle_length = 165; % the 18G FBG needle length
 %AA_lcn_base = [65, 100, 135]; % measured from base, skipping the AA near tip due to poor readings
-AA_lcn_base = [];
+AA_lcn_base = []; % the result of AA used to modify FEM
 AA_lcn_tip = needle_length - AA_lcn_base; % measured from tip
 AA_lcn = sb + l - AA_lcn_tip; % measured from sb
 
@@ -56,10 +59,17 @@ Kb = 0; % control input 2
 save("plot_params.mat",'sb','l','ti','Nel','Mu','Alpha','Interval','AA_lcn_base','Db','Kb');
 
 %% Initialization, data and memory
-% run ini_interrogator.m
-interrogator = ini_interrogator('IPaddress',interrogator_ip,'Port',interrogator_port,'ReadTimeout',0.1);
-% run ini_motor_controller.m
-g = ini_motor_controller(motor_controller_ip);
+interrogator = [];
+g = [];
+if FBG_switch == 1
+    % run ini_interrogator.m
+    interrogator = ini_interrogator('IPaddress',interrogator_ip,'Port',interrogator_port,'ReadTimeout',0.1);
+end
+if controller_switch == 1
+    % run ini_motor_controller.m
+    g = ini_motor_controller(motor_controller_ip);
+end
+
 curvatures = zeros(NumAA,2); %num_AA * 2
 curvatures_xy = curvatures(:,1);
 curvatures_xz = curvatures(:,2);
@@ -93,35 +103,34 @@ m = memmapfile(filename, 'Writable',true, 'Format', ...
 
 %% Read interrogator data for FBG initialization
 RefData = [];
-% read the reference data
-RefData = mean(Read_interrogator(20,2,NumAA,interrogator));
-total_y = 0;
-total_k = 0;
-total_x = 0;
+if FBG_switch == 1
+    % read the reference data
+    RefData = mean(Read_interrogator(20,2,NumAA,interrogator));
+end
+
 %% Main loop
 while(1)
     %tic
     % get du for next step
     du = numerical_jacobian_pos_ori_control(xd,Kp,ic,sb, l, ti, Nel, Mu, Alpha,...
                                             Interval,NumChannel,NumAA,interrogator,...
-                                             RefData,AA_lcn);
+                                             RefData,AA_lcn,FBG_switch);
     % motor gain
     [dx,dy,dr,Db,Kb] = robot_geometric(du(1)*dt,du(2)*dt,Db,Kb);
-    total_y = total_y + dy;
-    total_k = total_k + dr;
-    total_x = total_x + dx;
     % control motor
     % current dont use dk
     Input_RelPos_X = -round(dx*1000);
     Input_RelPos_Y = -round(dy*1000);
     Input_Rotation = round(dr*7031.25);
     give_pos=strcat('PR ,,',num2str(Input_RelPos_Y),',',  num2str(Input_RelPos_X), ',',num2str(Input_Rotation));
-    galil_command(g, give_pos);
-    galil_command(g, 'BG CDE');
-    galil_command(g, 'MC CDE');
+    if controller_switch == 1
+        galil_command(g, give_pos);
+        galil_command(g, 'BG CDE');
+        galil_command(g, 'MC CDE');
+    end
     
     [ds, ks, xs] = FBG_FEM_realtime(sb, l, Db, Kb, ti, Nel, Mu, Alpha, Interval,...
-                                    NumChannel,NumAA,interrogator,RefData,AA_lcn);
+                                    NumChannel,NumAA,interrogator,RefData,AA_lcn,FBG_switch);
     
     % update current base and tip location and orientation
     xt = [ds(end);ks(end)]; % current tip position and orientation
@@ -133,17 +142,14 @@ while(1)
     disp(e);
     if e <= 1e-3
         disp("done!Enter to go back!");
-        %disp(total_y);
-        %disp(total_k);
-        %disp(total_x);
-%         disp(Db);
-%         disp(Kb);
         pause();
         % go back to home
-        galil_command(g, 'PA ,,0,0,0');
-        galil_command(g, 'BG CDE');
-        galil_disconnect(g);
-        clear g;
+        if controller_switch == 1
+            galil_command(g, 'PA ,,0,0,0');
+            galil_command(g, 'BG CDE');
+            galil_disconnect(g);
+            clear g;
+        end
         break
     end
 

@@ -136,7 +136,7 @@ while 1
     end
 
     drawnow
-    pause(0.05);
+    pause(0.01);
     %toc
 end
 

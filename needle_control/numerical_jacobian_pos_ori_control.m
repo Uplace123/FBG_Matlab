@@ -1,4 +1,4 @@
-function du = numerical_jacobian_pos_ori_control(xd, Kp, ic, sb, l, ti, Nel, Mu, Alpha, Interval, NumChannel, NumAA, interrogator, RefData, AA_lcn)
+function du = numerical_jacobian_pos_ori_control(xd, Kp, ic, sb, l, ti, Nel, Mu, Alpha, Interval, NumChannel, NumAA, interrogator, RefData, AA_lcn,FBG_switch)
 %% FEM and FBG Parameters
 S.sb = sb;
 S.l = l;
@@ -65,7 +65,7 @@ end
 % Numerical jacobian based on FEM simulation
 %function [y,ds,ks,xs] = input_output_fem(u, S)
 function y = input_output_fem(u, S)
-[ds, ks, ~] = S.function(S.sb, S.l, u(1), u(2), S.ti, S.Nel, S.Mu, S.Alpha,S.Interval,S.NumChannel,S.NumAA,S.interrogator,S.RefData,S.AA_lcn);
+[ds, ks, ~] = S.function(S.sb, S.l, u(1), u(2), S.ti, S.Nel, S.Mu, S.Alpha,S.Interval,S.NumChannel,S.NumAA,S.interrogator,S.RefData,S.AA_lcn,FBG_switch);
 y = zeros(2, 1);
 y(1) = ds(end);
 y(2) = ks(end);

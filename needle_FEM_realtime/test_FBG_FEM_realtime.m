@@ -9,6 +9,7 @@ addpath ./WYZ_FEM/invChol/
 
 %% Close all pnet connection
 close_pnet();
+FBG_switch = 0; % turn off FBG
 
 %% FEM needed input
 sb = 20;
@@ -21,7 +22,8 @@ Mu = [0, 5e3];
 Alpha = [2, 3];
 Interval = {[-sb, 0], [0, l + 10]};
 needle_length = 165; % the 18G FBG needle length
-AA_lcn_base = [65, 100, 135]; % measured from base, skipping the AA near tip due to poor readings
+%AA_lcn_base = [65, 100, 135]; % measured from base, skipping the AA near tip due to poor readings
+AA_lcn_base = []; % if FBG_switch is 0, keep AA_lcn_tip as []
 AA_lcn_tip = needle_length - AA_lcn_base; % measured from tip
 AA_lcn = sb + l - AA_lcn_tip; % measured from sb
 % save params for plotting use
@@ -65,16 +67,19 @@ m = memmapfile(filename, 'Writable',true, 'Format', ...
 
 %% Read interrogator data for FBG initialization
 RefData = [];
-% run ini_interrogator.m
-interrogator = ini_interrogator('IPaddress','192.168.1.11','Port',1852,'ReadTimeout',0.1);
-% read the reference data
-RefData = mean(Read_interrogator(20,2,NumAA,interrogator));
+interrogator = [];
+if FBG_switch == 1
+    % run ini_interrogator.m
+    interrogator = ini_interrogator('IPaddress','192.168.1.11','Port',1852,'ReadTimeout',0.1);
+    % read the reference data
+    RefData = mean(Read_interrogator(20,2,NumAA,interrogator));
+end
 
 %% Main loop
 while 1
     tic
     [ds, ks, xs] = FBG_FEM_realtime(sb, l, Db, Kb, ti, Nel, Mu, Alpha, Interval,...
-        NumChannel,NumAA,interrogator,RefData,AA_lcn);
+        NumChannel,NumAA,interrogator,RefData,AA_lcn,FBG_switch);
     % propertytable interval mut alphaT GammaT
     
     % story data for plotting
