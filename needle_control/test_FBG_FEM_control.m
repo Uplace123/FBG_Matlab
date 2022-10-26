@@ -46,7 +46,7 @@ NumChannel = 2;
 NumAA = 4; % this should keep tha same as needle
 
 %% control and ode parameters
-xd = [0; 0.1]; % desired tip position and orientation
+xd = [3; 0.15]; % desired tip position and orientation
 Kp = diag([2, 2]); % proportional gain -> too large can result in non-converging FEM
 x0 = zeros(2, 1); % initial tip position and orientation
 u0 = zeros(2, 1); % initial base position and orientation
