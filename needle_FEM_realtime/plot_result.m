@@ -19,9 +19,9 @@ curvatures_xz = curvatures(:,2);
 % position of AA, dist from the baseS
 tip_lcn = l + sb;
 
-
+d_init = zeros(2*(Nel + 1), 1);
 [ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(sb, l, Db, Kb, ti, Nel, Mu, ...
-                                             Alpha, Interval, curvatures_xz, AA_lcn);
+                                             Alpha, Interval, curvatures_xz, AA_lcn, d_init);
 
 sz_ds = size(ds);
 sz_ks = size(ks);

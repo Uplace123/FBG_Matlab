@@ -1,4 +1,5 @@
-function [ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(sb, l, Db, Kb, ti, Nel, Mu, Alpha, Interval, curvatures, AA_lcn)
+function [ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(sb, l, Db, Kb, ti, ...
+    Nel, Mu, Alpha, Interval, curvatures, AA_lcn, d_init)
 %% Initialization
 % sb = 0;
 % l = 165;
@@ -28,22 +29,11 @@ PropertyTable = table(Interval, MuT, AlphaT, GammaT);
 Nen = 4; % Number of element DOF
 DOF = 1:(2*Nel + 2);
 nDOF = length(DOF);
-d = zeros(nDOF, 1); % Initial guess of solution
+d = d_init; % Initial guess of solution
 h = L/Nel; % Finite element size
-EBC = [1; 2]; % Displacement and slope of first element left node is prescribed
+EBC_idx = [1; 2]; % Displacement and slope of first element left node is prescribed
 freeDOF = DOF;
-freeDOF(EBC) = [];
-
-% Algorithm-specific constants
-max_inner_iter = 5; % Max number of iterations for Newton's method
-max_outer_iter = 50; % Max number of iterations for load stepping
-inner_iter = 0; % Initialize inner_iter counter
-outer_iter = 0; % Initialize outer_iter counter
-tol = 1e-3; % Convergence criterion
-converged = 0;
-load_ratio = 1;
-EBC_cur = zeros(2, 1); % For load stepping
-EBC_converged = zeros(2, 1); % For load stepping from previously converged EBC
+freeDOF(EBC_idx) = [];
 
 % Construction of LM
 LM = zeros(Nen, Nel);
@@ -61,62 +51,28 @@ AA_crv = AA_crv(AA_er >= 0); % curvatures that have negative element indices are
 AA_er = AA_er(AA_er >= 0); % elements that have negative indices are skipped
 
 %% FEM Main
-% Load stepping
-while (~all(EBC_cur == EBC)) && (outer_iter < max_outer_iter)
-    outer_iter = outer_iter + 1;
-    inner_iter = 0;
-    converged = 0;
-    EBC_cur = EBC_converged + load_ratio*EBC;
-    % FEM solution
-    while inner_iter < max_inner_iter
-        K = zeros(nDOF, nDOF);
-        F = zeros(nDOF, 1);
-        P = zeros(nDOF, 1);
-        % Apply EBC
-        d(EBC) = [Db; Kb];
-        % Loop over each element
-        for e = 1:Nel
-            % Get local nodal values from global d
-            d_i_local = d(2*e - 1:2*e + 2);
-            [ke, pe] = compute_element_matrix(d_i_local, ti, E, I, ...
+K = zeros(nDOF, nDOF);
+F = zeros(nDOF, 1);
+P = zeros(nDOF, 1);
+% Apply EBC
+d(EBC_idx) = [Db; Kb];
+% Loop over each element
+for e = 1:Nel
+    % Get local nodal values from global d
+    d_i_local = d(2*e - 1:2*e + 2);
+    [ke, pe] = compute_element_matrix(d_i_local, ti, E, I, ...
                 PropertyTable, e, h, -sb, ...
                 AA_er, AA_crv);
-
-            % Global assembly process
-            %for i = 1:4
-            %   for j = 1:4
-            %       K(LM(i, e), LM(j, e)) = K(LM(i, e), LM(j, e)) + ke(i, j);
-            %   end
-            %   P(LM(i, e))=P(LM(i, e))+pe(i);
-            %end
-
-            % Using vectors instead of FOR loops
-            K(LM(1:4, e), LM(1:4, e)) = K(LM(1:4, e), LM(1:4, e)) + ke;
-            P(LM(1:4, e)) = P(LM(1:4, e)) + pe;
-        end
-
-        % Newton's method
-        % Use only free DOF from the list of DOF to compute d
-        delta_d = invChol_mex(K(freeDOF, freeDOF))*(F(freeDOF, 1)-P(freeDOF, 1));
-
-        if(norm((F(freeDOF, 1)-P(freeDOF, 1))) <= tol)
-            converged = 1;
-            %fprintf("Converged at inner step %d, outer step %d\n", inner_iter + 1, outer_iter);
-            break;
-        end
-        d(freeDOF, 1) = d(freeDOF, 1) + delta_d;
-        inner_iter = inner_iter + 1;
-    end
-
-    % Check for convergence of current inner iteration
-    if converged ~= 1
-        load_ratio = 0.5*load_ratio;
-        EBC_cur = zeros(2, 1);
-        % fprintf("No convergence. Decreasing load step\n");
-    else
-        EBC_converged = EBC_cur;
-    end
+    % Global assembly process
+    % Using vectors instead of FOR loops
+    K(LM(1:4, e), LM(1:4, e)) = K(LM(1:4, e), LM(1:4, e)) + ke;
+    P(LM(1:4, e)) = P(LM(1:4, e)) + pe;
 end
+
+% Newton's method
+% Use only free DOF from the list of DOF to compute d
+delta_d = invChol_mex(K(freeDOF, freeDOF))*(F(freeDOF, 1)-P(freeDOF, 1));
+d(freeDOF, 1) = d(freeDOF, 1) + delta_d;
 
 % output only the displacement
 ds = extract_dist_from_d(d);
@@ -127,20 +83,7 @@ xs(1) = -sb;
 for i = 2:(Nel + 1)
     xs(i) = xs(i - 1) + sqrt(h^2 - dds(i - 1)^2);
 end
-
-%% Display of final result
-if converged
-    %disp('Newton-Ralphson converged');
-else
-    disp('Newton-Ralphson does not converge')
 end
-
-% % Plot result
-% if ifplot == 1 && converged
-%     plot_result(ds, xs, PropertyTable);
-% end
-end
-
 
 %% Defined helper functions
 % Look up material properties at given location

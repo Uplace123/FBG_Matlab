@@ -18,9 +18,9 @@ Db = 0; % control input 1
 Kb = 0; % control input 2
 ti = 25;
 Nel = sb + l; % 1mm elements
-Mu = [0, 5e3];
-Alpha = [2, 3];
-Interval = {[-sb, 0], [0, l + 10]};
+Mu = [0; 5e3];
+Alpha = [2; 3];
+Interval = {[-sb, 0]; [0, l + 10]};
 needle_length = 165; % the 18G FBG needle length
 %AA_lcn_base = [65, 100, 135]; % measured from base, skipping the AA near tip due to poor readings
 AA_lcn_base = []; % if FBG_switch is 0, keep AA_lcn_tip as []
@@ -37,8 +37,9 @@ curvatures_xy = curvatures(:,1);
 curvatures_xz = curvatures(:,2);
 
 %% Initialization, data and memory
+d_init = zeros(2*(Nel + 1), 1);
 [ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(sb, l, Db, Kb, ti, Nel, Mu, ...
-                                             Alpha, Interval, curvatures_xz, AA_lcn);
+                                             Alpha, Interval, curvatures_xz, AA_lcn, d_init);
 
 filename = fullfile(tempdir,'communicate.dat');
 a = exist(filename, 'file');
@@ -79,7 +80,7 @@ end
 while 1
     tic
     [ds, ks, xs] = FBG_FEM_realtime(sb, l, Db, Kb, ti, Nel, Mu, Alpha, Interval,...
-        NumChannel,NumAA,interrogator,RefData,AA_lcn,FBG_switch);
+        NumChannel,NumAA,interrogator,RefData,AA_lcn,FBG_switch, assem_d_k(ds, ks));
     % propertytable interval mut alphaT GammaT
     
     % story data for plotting

@@ -73,8 +73,10 @@ end
 curvatures = zeros(NumAA,2); %num_AA * 2
 curvatures_xy = curvatures(:,1);
 curvatures_xz = curvatures(:,2);
+
+d_init = zeros(2*(Nel + 1), 1);
 [ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(sb, l, Db, Kb, ti, Nel, Mu, ...
-                                             Alpha, Interval, curvatures_xz, AA_lcn);
+                                             Alpha, Interval, curvatures_xz, AA_lcn, d_init);
 
 filename = fullfile(tempdir,'communicate.dat');
 a = exist(filename, 'file');
@@ -114,7 +116,7 @@ while(1)
     % get du for next step
     du = numerical_jacobian_pos_ori_control(xd,Kp,ic,sb, l, ti, Nel, Mu, Alpha,...
                                             Interval,NumChannel,NumAA,interrogator,...
-                                             RefData,AA_lcn,FBG_switch);
+                                             RefData,AA_lcn,FBG_switch, assem_d_k(ds, ks));
     % motor gain
     [dx,dy,dr,Db,Kb] = robot_geometric(du(1)*dt,du(2)*dt,Db,Kb);
     % control motor
@@ -130,7 +132,7 @@ while(1)
     end
     
     [ds, ks, xs] = FBG_FEM_realtime(sb, l, Db, Kb, ti, Nel, Mu, Alpha, Interval,...
-                                    NumChannel,NumAA,interrogator,RefData,AA_lcn,FBG_switch);
+                                    NumChannel,NumAA,interrogator,RefData,AA_lcn,FBG_switch, assem_d_k(ds, ks));
     
     % update current base and tip location and orientation
     xt = [ds(end);ks(end)]; % current tip position and orientation
