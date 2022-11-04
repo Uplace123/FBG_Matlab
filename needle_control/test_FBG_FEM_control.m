@@ -19,21 +19,26 @@ addpath ./Galil_MATLAB_API/
 %% Close all pnet connection
 close_pnet();
 FBG_switch = 0; % turn off FBG
-controller_switch = 1; % turn off controller
+controller_switch = 1; % turn on controller
 %% interrogator and Galil motor controller params
 interrogator_ip = '192.168.1.11';
 interrogator_port = 1852;
 motor_controller_ip = '192.168.1.201';
 
 %% FEM needed input
-sb = 27.087;
+sb = 27.72;
 %l = 145;
-l = 50;
+l = 60;
 ti = 25;
 Nel = round(sb + l); % 1mm elements
+% pork
+Mu = [0, 3.63e+03];
+Alpha = [2,8.74];
+% air
+%Mu = [0,0];
+% gem
 %Mu = [0, 1.2715e4];
-Mu = [0,0];
-Alpha = [2, -1];
+%Alpha = [2, -1];
 Interval = {[-sb, 0], [0, l + 10]};
 needle_length = 165; % the 18G FBG needle length
 %AA_lcn_base = [65, 100, 135]; % measured from base, skipping the AA near tip due to poor readings
@@ -46,7 +51,7 @@ NumChannel = 2;
 NumAA = 4; % this should keep tha same as needle
 
 %% control and ode parameters
-xd = [2; 0]; % desired tip position and orientation
+xd = [-4;-0.15]; % desired tip position and orientation
 Kp = diag([2, 2]); % proportional gain -> too large can result in non-converging FEM
 x0 = zeros(2, 1); % initial tip position and orientation
 u0 = zeros(2, 1); % initial base position and orientation
