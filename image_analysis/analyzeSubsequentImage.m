@@ -1,4 +1,10 @@
 function [sb, l, db, kb, ti, d_to_match] = analyzeSubsequentImage(dataset, threshold, Nel, ts_baseline, y_fit_baseline)
+% Yanzhou Wang
+% Jan 2022
+%% Add directory
+path = fullfile(matlabdrive, 'needle_tissue_FEM_model/image_analysis');
+addpath(genpath(path));
+
 %% Read CT
 small_vol_threshold = 40;
 [newVol, delMM] = readCT(dataset, threshold, small_vol_threshold);
@@ -54,7 +60,7 @@ gel_marker_CT_coord = apply_transform(gel_marker_CT_coord, R_gel, t_gel);
 stage_marker_CT_coord = apply_transform(stage_marker_CT_coord, R_gel, t_gel);
 
 % Stage -> 2. Find (R_stage, t_stage) and bring design to volume
-[R_stage, t_stage] = icp_wrapper(stage_marker_CT_coord, stage_marker_design_coord, 1);
+[R_stage, t_stage] = icp_wrapper(stage_marker_CT_coord, stage_marker_design_coord, 0.1);
 stage_marker_design_coord = apply_transform(stage_marker_design_coord, R_stage, t_stage);
 
 %% Segment, Transform, and Estimate Needle Shape
@@ -67,9 +73,10 @@ yp = feval(y_fit_obj, xp);
 zp = feval(z_fit_obj, xp);
 
 %% Generate output
-sb = abs(t_stage(1)); % stage-gel-separation (need a positive number)
-l = needleMM(end, 1); % depth of insertion
-db = t_stage(2) - ts_baseline(2); % y displacement of the needle exit, not the stage
+sb = abs(xp(1)); % stage-gel-separation (need a positive number)
+l = abs(xp(end)); % depth of insertion
+db = t_stage(2) - ts_baseline(2); % y displacement of the needle exit
+% db = yp(1) - ts_baseline(2);
 theta = atan2(R_stage(2, 1), R_stage(1, 1)); % using ZYX Euler angle, extracting only rotation about Z
 kb = tan(theta);
 % ti = (52/2) - ts_baseline(2);
@@ -79,13 +86,8 @@ yp_baseline = feval(y_fit_baseline, xp); % baseline needle shape, which can be n
 d_to_match = yp - yp_baseline; % net needle Y displacement
 
 %% Visualization
-% plotScene(gel_marker_design_coord, gel_marker_CT_coord, ...
-%          stage_marker_design_coord, stage_marker_CT_coord, ...
-%          [xp, yp, zp], needleMM, R_stage, t_stage);
-% 
+plotScene(gel_marker_design_coord, gel_marker_CT_coord, ...
+         stage_marker_design_coord, stage_marker_CT_coord, ...
+         [xp, yp, zp], needleMM, R_stage, t_stage);
 
-
-% if rcm < 0
-%     warning('problem: %s\n', dataset)
-% end
 end

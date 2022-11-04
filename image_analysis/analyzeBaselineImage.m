@@ -1,4 +1,11 @@
 function [Nel, t_stage, y_fit_obj] = analyzeBaselineImage(dataset, threshold)
+% Yanzhou Wang
+% Jan 2022
+
+%% Add directory
+path = fullfile(matlabdrive, 'needle_tissue_FEM_model/image_analysis');
+addpath(genpath(path));
+
 %% Read CT
 small_vol_threshold = 40;
 [newVol, delMM] = readCT(dataset, threshold, small_vol_threshold);
@@ -62,12 +69,15 @@ stage_marker_design_coord = apply_transform(stage_marker_design_coord, R_stage, 
 needleMM = apply_transform(needleMM, R_gel, t_gel);
 [y_fit_obj, y_gof] = fit(needleMM(:, 1), needleMM(:, 2), 'linearinterp');
 [z_fit_obj, z_gof] = fit(needleMM(:, 1), needleMM(:, 3), 'linearinterp');
-xp = (t_stage(1):.5:max(needleMM(:, 1)))'; % wrt moved origin
+xp = (t_stage(1):1:max(needleMM(:, 1)))'; % wrt moved origin
 yp = feval(y_fit_obj, xp);
 zp = feval(z_fit_obj, xp);
 
-% Nel = length(xp);
-Nel = floor(length(xp)/2);
+Nel = length(xp);
+% Nel = floor(length(xp)/2);
+
+%% Potential error here...
+% t_stage = [xp(1); yp(1); zp(1)];
 
 %% Error Checking and Reporting
 fprintf('Gel markers avg. registration error: %.3f mm\n', err_gel);
@@ -83,8 +93,8 @@ theta = atan2(R_stage(2, 1), R_stage(1, 1)); % using ZYX Euler angle, extracting
 fprintf('Baseline rotation angle (~0): %.3f degrees\n', theta/pi*180);% this is the rotation angle
 
 %% Visualization
-% plotScene(gel_marker_design_coord, gel_marker_CT_coord, ...
-%    stage_marker_design_coord, stage_marker_CT_coord, ...
-%    [xp, yp, zp], needleMM, R_stage, t_stage);
-% title('Baseline Image')
+plotScene(gel_marker_design_coord, gel_marker_CT_coord, ...
+   stage_marker_design_coord, stage_marker_CT_coord, ...
+   [xp, yp, zp], needleMM, R_stage, t_stage);
+title('Baseline Image')
 end
