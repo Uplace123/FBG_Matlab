@@ -77,12 +77,13 @@ end
 % ...
 
 %% least square get calibration matrix H
-H = pinv([ones(size(measure_mat,1),1) measure_mat]' * [ones(size(measure_mat,1),1) measure_mat]) * [ones(size(measure_mat,1),1) measure_mat]' * real_mat;
+% H = pinv([ones(size(measure_mat,1),1) measure_mat]' * [ones(size(measure_mat,1),1) measure_mat]) * [ones(size(measure_mat,1),1) measure_mat]' * real_mat;
+H = pinv(measure_mat' * measure_mat) * measure_mat' * real_mat;
 %disp(H);
 %disp(size(H)); % 9 * 8
 
 % get the error of least square
-predict = [ones(size(measure_mat,1),1) measure_mat] * H;
+predict = measure_mat * H;
 error = real_mat - predict;
 %disp(error); % looks good!
 disp(mean(abs(error),1)); % average abs error for channels in each AA

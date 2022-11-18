@@ -1,6 +1,4 @@
 clear;
-clc;
-
 
 load Cal_mat_2CH_alldata.mat 
 % load Cal_mat_2CH.mat % calibration matrix get from calibration.xlsx
@@ -17,7 +15,7 @@ num_trial_2 = 2:1:5; % for validation.xls ignore first trial
 namefile = 'validation.xls'; % data used to validate the calibration matrix
 num_trial = num_trial_2;
 curvature = [0.25 0.8 1 1.25]; % constant curvature curve
-
+% 
 % namefile = 'calibration.xls';
 % num_trial = num_trial_1;
 % curvature = [0.5 1.6 2 2.5 3.2];
@@ -35,6 +33,7 @@ end
 
 
 fig = figure('Name','validation');
+set(fig, 'Position', [60, 515, 1750, 450]);
 %ax = axes('Parent',fig);
 subax1 = subplot(2,2,1);
 subax2 = subplot(2,2,2);
@@ -68,6 +67,7 @@ hold(subax4,'on');
 color_type = ['r','b','k','g','y']; % color for different curvature
 
 for i = 1:size(curvature,2) % four curves (excluding straight)
+    
     curve = num2str(curvature(i));
     cl = color_type(i);
     % temp compensation
@@ -80,11 +80,13 @@ for i = 1:size(curvature,2) % four curves (excluding straight)
         sheet_name = strcat('trial',num2str(tri),'_',curve,'mm'); 
         data = readmatrix(namefile,'Sheet',strcat(sheet_name,'_0deg')) - fbg_unbent_0d;
         fbg_curve_0d = data(:,index);
-        predict_curvature = [ones(size(fbg_curve_0d,1),1) fbg_curve_0d] * H;
+        one_size = size(fbg_curve_0d, 1);
+        
+        predict_curvature = [ones(one_size, 1) fbg_curve_0d(:, 1:2) ones(one_size, 1) fbg_curve_0d(:, 3:4) ones(one_size, 1) fbg_curve_0d(:, 5:6) ones(one_size, 1) fbg_curve_0d(:, 7:8)] * H;
 
         plot(subax1,1:size(predict_curvature,1),predict_curvature(:,1),cl);
         plot(subax2,1:size(predict_curvature,1),predict_curvature(:,2),cl);
-        sum_error(i) = sum_error(i) + sum([abs(predict_curvature(:,1) - curvature(i)); abs(predict_curvature(:,2) - 0)]);
+        sum_error(i) = sum_error(i) + sum([abs(predict_curvature(:,5) - curvature(i)); abs(predict_curvature(:,6) - 0)]);
 
         plot(subax1,1:size(predict_curvature,1),predict_curvature(:,3),cl);
 
@@ -98,8 +100,8 @@ for i = 1:size(curvature,2) % four curves (excluding straight)
 
         data = readmatrix(namefile,'Sheet',strcat(sheet_name,'_90deg')) - fbg_unbent_90d;
         fbg_curve_90d = data(:,index);
-        predict_curvature = [ones(size(fbg_curve_90d,1),1) fbg_curve_90d] * H;
-        sum_error(i) = sum_error(i) + sum([abs(predict_curvature(:,1) - 0); abs(predict_curvature(:,2) - curvature(i))]);
+        predict_curvature = [ones(one_size, 1) fbg_curve_90d(:, 1:2) ones(one_size, 1) fbg_curve_90d(:, 3:4) ones(one_size, 1) fbg_curve_90d(:, 5:6) ones(one_size, 1) fbg_curve_90d(:, 7:8)] * H;
+        sum_error(i) = sum_error(i) + sum([abs(predict_curvature(:,5) - 0); abs(predict_curvature(:,6) - curvature(i))]);
         
         plot(subax4,1:size(predict_curvature,1),predict_curvature(:,1),cl);
         plot(subax3,1:size(predict_curvature,1),predict_curvature(:,2),cl);
@@ -114,7 +116,7 @@ for i = 1:size(curvature,2) % four curves (excluding straight)
     end
 end
 
-num_data =  2* (num_trial(end)-num_trial(1))*size(predict_curvature,1);
+num_data =  2* (num_trial(end)-num_trial(1) + 1)*size(predict_curvature,1);
 
 %legend("real curvature: 0.25","real curvature: 0.8","real curvarue: 1","real curvarture: 1.25");
 hold(subax1,'off');
