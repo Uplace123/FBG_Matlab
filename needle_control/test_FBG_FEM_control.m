@@ -19,7 +19,7 @@ addpath ./Galil_MATLAB_API/
 %% Close all pnet connection
 close_pnet();
 FBG_switch = 0; % turn off FBG
-controller_switch = 1; % turn on controller
+controller_switch = 0; % turn on controller
 %% interrogator and Galil motor controller params
 interrogator_ip = '192.168.1.11';
 interrogator_port = 1852;
@@ -117,7 +117,7 @@ end
 
 %% Main loop
 while(1)
-    %tic
+    tic
     % get du for next step
     du = numerical_jacobian_pos_ori_control(xd,Kp,ic,sb, l, ti, Nel, Mu, Alpha,...
                                             Interval,NumChannel,NumAA,interrogator,...
@@ -159,7 +159,7 @@ while(1)
         end
         break
     end
-
+    toc
     % story data for plotting
     m.Data.ds(sz_ds(1), 1:sz_ds(2)) = ds;
     m.Data.ks(sz_ks(1), 1:sz_ks(2)) = ks;

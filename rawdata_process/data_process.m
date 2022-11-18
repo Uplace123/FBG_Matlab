@@ -1,13 +1,14 @@
 function curvature = data_process(RawData,RefData,NumChannel,NumAA)
-%load Cal_matrix.mat %for three channel needle
-%load Cal_matrix_2CH.mat %for two channel needle
-% cal_matrix = [ C1; C2; C3; C4] each C with a dimension of 3*2
+% modified in 11/18/2022
+%load  %for three channel needle
+%load Cal_mat_2CH_alldata.mat %for two channel needle
+% cal_matrix H = (num_AA*num_CH + 1) * 2*NumAA each C with a dimension of 3*2
 
 % output
-curvature = zeros(4,2);
+curvature = zeros(2,NumAA);
 
 if NumChannel == 2
-    load Cal_matrix_2CH.mat
+    load Cal_mat_2CH_alldata.mat
 elseif NumChannel == 3
     load Cal_matrix.mat
 end
@@ -17,8 +18,7 @@ row_num = NumChannel;
 % get the curvature
 diff_val_mean = mean(RawData,1) - RefData;
 
-for i = 1:1:NumAA
-    AAindex = i:NumAA:NumAA*NumChannel;
-    get_curvature = diff_val_mean(1,AAindex)* cal_matrix(i*row_num - (row_num-1) : i*row_num,:);
-    curvature(i,:) = get_curvature;
-end
+get_curvature = [1 diff_val_mean] * H;
+
+index = [[1:2:NumAA*2]' [2:2:NumAA*2]'];
+curvature = get_curvature(index);
