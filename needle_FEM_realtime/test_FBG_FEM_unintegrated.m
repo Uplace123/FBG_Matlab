@@ -35,8 +35,9 @@ curvatures_xy = curvatures(:,1);
 curvatures_xz = curvatures(:,2);
 
 %% Initialization, data and memory
+d_init = zeros(2*(Nel + 1), 1);
 [ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(sb, l, Db, Kb, ti, Nel, Mu, ...
-                                             Alpha, Interval, curvatures_xz, AA_lcn);
+                                             Alpha, Interval, curvatures_xz, AA_lcn,d_init);
 
 filename = fullfile(tempdir,'communicate.dat');
 a = exist(filename, 'file');
@@ -71,21 +72,21 @@ RawData = [];
 % run ini_interrogator.m
 interrogator = ini_interrogator('IPaddress','192.168.1.11','Port',1852,'ReadTimeout',0.1);
 % read the reference data
-RefData = mean(Read_interrogator(20,2,NumAA,interrogator));
+RefData = mean(Read_interrogator(100,2,NumAA,interrogator));
 
 %% Main loop
 while 1
-    tic
+    %tic
     
     RawData = Read_interrogator(1,NumChannel,NumAA,interrogator);
     %toc about 0.01s
     curvatures = data_process(RawData,RefData,NumChannel,NumAA);
     curvatures_xy = curvatures(:,1);
     curvatures_xz = curvatures(:,2);
-    %disp(curvatures_xz);
+    disp(curvatures_xz');
     %toc about 0.01s
     [ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(sb, l, Db, Kb, ti, Nel, Mu, ...
-                                             Alpha, Interval, curvatures_xz, AA_lcn);
+                                             Alpha, Interval, curvatures_xz, AA_lcn,d_init);
 
     %toc about 0.09s
 
@@ -94,5 +95,5 @@ while 1
     m.Data.ks(sz_ks(1), 1:sz_ks(2)) = ks;
     m.Data.xs(sz_xs(1), 1:sz_xs(2)) = xs;
     m.Data.curvature(1:sz_curvatures(1),1:sz_curvatures(2)) = curvatures;
-    toc % about 0.09s
+    %toc % about 0.09s
 end

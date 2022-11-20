@@ -24,9 +24,8 @@ index = []; % record index of each AA (each row has num_CH values)
 
 
 real_mat = []; % correspoding curvature for measure_mat
-num_data = 0;
-sum_error = zeros(1,size(curvature,2)); % record sum abs error for each data point
-
+sum_error_AAs = zeros(1,2*num_AA);
+data_count = 0;
 for i = 1:num_AA
     index = [index i:num_AA:num_CH*num_AA];
 end
@@ -46,7 +45,7 @@ for i = 2 : size(curvature,2)
 end
 title_str1 = sprintf('XY plane: Desire curvature: %s',txt);
 title_str2 = sprintf('XZ plane: Desire curvature: %s',txt);
-output_txt = sprintf('Average abs error (curvature, %s)',txt);
+output_txt = sprintf('Average abs error for AAs(curvature, %s)',txt);
 title(subax1,title_str1);
 title(subax4,'XY plane: Desire curvature: 0');
 title(subax3,title_str2);
@@ -83,11 +82,12 @@ for i = 1:size(curvature,2) % four curves (excluding straight)
         one_size = size(fbg_curve_0d, 1);
         
         predict_curvature = [ones(one_size, 1) fbg_curve_0d(:, 1:2) ones(one_size, 1) fbg_curve_0d(:, 3:4) ones(one_size, 1) fbg_curve_0d(:, 5:6) ones(one_size, 1) fbg_curve_0d(:, 7:8)] * H;
-
+        
         plot(subax1,1:size(predict_curvature,1),predict_curvature(:,1),cl);
         plot(subax2,1:size(predict_curvature,1),predict_curvature(:,2),cl);
-        sum_error(i) = sum_error(i) + sum([abs(predict_curvature(:,5) - curvature(i)); abs(predict_curvature(:,6) - 0)]);
-
+        error_mat = predict_curvature - [curvature(i) 0 curvature(i) 0 curvature(i) 0 curvature(i) 0];
+        sum_error_AAs = sum_error_AAs + abs(error_mat);
+        data_count = data_count + 1;
         plot(subax1,1:size(predict_curvature,1),predict_curvature(:,3),cl);
 
         plot(subax2,1:size(predict_curvature,1),predict_curvature(:,4),cl);
@@ -101,8 +101,9 @@ for i = 1:size(curvature,2) % four curves (excluding straight)
         data = readmatrix(namefile,'Sheet',strcat(sheet_name,'_90deg')) - fbg_unbent_90d;
         fbg_curve_90d = data(:,index);
         predict_curvature = [ones(one_size, 1) fbg_curve_90d(:, 1:2) ones(one_size, 1) fbg_curve_90d(:, 3:4) ones(one_size, 1) fbg_curve_90d(:, 5:6) ones(one_size, 1) fbg_curve_90d(:, 7:8)] * H;
-        sum_error(i) = sum_error(i) + sum([abs(predict_curvature(:,5) - 0); abs(predict_curvature(:,6) - curvature(i))]);
-        
+        error_mat = predict_curvature - [0 curvature(i) 0 curvature(i) 0 curvature(i) 0 curvature(i)];
+        sum_error_AAs = sum_error_AAs + abs(error_mat);
+        data_count = data_count + 1;
         plot(subax4,1:size(predict_curvature,1),predict_curvature(:,1),cl);
         plot(subax3,1:size(predict_curvature,1),predict_curvature(:,2),cl);
         plot(subax4,1:size(predict_curvature,1),predict_curvature(:,3),cl);
@@ -116,7 +117,7 @@ for i = 1:size(curvature,2) % four curves (excluding straight)
     end
 end
 
-num_data =  2* (num_trial(end)-num_trial(1) + 1)*size(predict_curvature,1);
+%num_data =  2 *size(curvature,2) * (num_trial(end)-num_trial(1) + 1)*size(predict_curvature,1);
 
 %legend("real curvature: 0.25","real curvature: 0.8","real curvarue: 1","real curvarture: 1.25");
 hold(subax1,'off');
@@ -126,4 +127,4 @@ hold(subax4,'off');
 
 % print average abs error
 disp(output_txt);
-disp(sum_error./num_data);
+disp(mean(sum_error_AAs./data_count,1));

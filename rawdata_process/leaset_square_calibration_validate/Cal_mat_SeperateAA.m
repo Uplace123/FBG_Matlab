@@ -22,10 +22,14 @@ for i = 1:size(curvature,2)
     for j = 1:num_AA
         add = [];
         for k = num_trial_1
-            add = [add; curvature(i) 0];
+            %for h = 1:200
+                add = [add; curvature(i) 0];
+            %end
         end
         for k = num_trial_1
-            add = [add; 0 curvature(i)];
+            %for h = 1:200
+                add = [add; 0 curvature(i)];
+            %end
         end
         row_real_mat = [row_real_mat add];
     end
@@ -38,18 +42,23 @@ end
 %     for j = 1:num_AA
 %         add = [];
 %         for k = num_trial_2
-%             add = [add; curvature(i) 0];
+%             %for h = 1:200
+%                 add = [add; curvature(i) 0];
+%             %end
 %         end
 %         for k = num_trial_2
-%             add = [add; 0 curvature(i)];
+%             %for h = 1:200
+%                 add = [add; 0 curvature(i)];
+%             %end
 %         end
 %         row_real_mat = [row_real_mat add];
 %     end
 %     real_mat = [real_mat; row_real_mat];
 % end
-% disp(real_mat);
-% the dim of real_mat should be (trial_0deg + trial_90deg)*num_curve * (numAA*numCH)
-% disp(size(real_mat)); % 90 * 8
+
+%disp(real_mat);
+%the dim of real_mat should be (trial_0deg + trial_90deg)*num_curve * (numAA*numCH)
+%disp(size(real_mat)); % 90 * 8
 
 for i = 1:num_AA
     index = [index i:num_AA:num_CH*num_AA];
@@ -75,11 +84,11 @@ for i = 1:size(curvature,2) % five curves (excluding straight)
         fbg_curve_0d = data(:,index);
         
         trial_0d = [trial_0d ; mean(fbg_curve_0d,1)]; % dim: 1*numAA*numCH
-        
+        %trial_0d = [trial_0d ; fbg_curve_0d]; % dim: 200*numAA*numCH
         data = readmatrix(namefile,'Sheet',strcat(sheet_name,'_90deg')) - fbg_unbent_90d;
         fbg_curve_90d = data(:,index);
         trial_90d = [trial_90d ; mean(fbg_curve_90d,1)];
-        
+        %trial_90d = [trial_90d ; fbg_curve_90d];
     end
     % construct measrue_mat
     % disp(trial_0d);
@@ -106,11 +115,11 @@ end
 %         fbg_curve_0d = data(:,index);
 %         
 %         trial_0d = [trial_0d ; mean(fbg_curve_0d,1)]; % dim: 1*numAA*numCH
-%         
+%         %trial_0d = [trial_0d ; fbg_curve_0d];
 %         data = readmatrix(namefile,'Sheet',strcat(sheet_name,'_90deg')) - fbg_unbent_90d;
 %         fbg_curve_90d = data(:,index);
 %         trial_90d = [trial_90d ; mean(fbg_curve_90d,1)];
-%         
+%         %trial_90d = [trial_90d ; fbg_curve_90d];
 %     end
 %     % construct measrue_mat
 %     % disp(trial_0d);
@@ -143,7 +152,8 @@ end
 
 % get the error of least square
 predict = Y_assem * H;
-error = real_mat - predict;
+error = predict - real_mat;
+%disp(size(error));
 %disp(error); % looks good!
 disp(mean(abs(error),1)); % average abs error for channels in each AA
 
