@@ -9,6 +9,7 @@ if FBG_switch == 1
     curvatures = data_process(RawData,RefData,NumChannel,NumAA);
     % curvatures_xy = curvatures(:,1);
     curvatures_xz = curvatures(:,2);
+    %disp(curvatures_xz');
 
     % FEM outputs
     [ds, ks, xs] = FBG_integrated_FEM_Ogden_UTru(sb, l, Db, Kb, ti, Nel, Mu, ...

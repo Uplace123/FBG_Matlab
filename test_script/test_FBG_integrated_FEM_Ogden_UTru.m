@@ -18,7 +18,8 @@ I = pi/4*(OD/2)^4; % in mm^4
 ifplot = 1;
 
 % Add Cholesky inverse
-addpath(genpath('./invCol/'))
+addpath ../needle_FEM_realtime/WYZ_FEM
+addpath ../needle_FEM_realtime/WYZ_FEM/invCol
 
 % Constants
 L = sb + l;

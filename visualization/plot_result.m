@@ -3,8 +3,8 @@ close all;
 clear;
 clc;
 
-addpath ./WYZ_FEM/
-addpath ./WYZ_FEM/invChol/
+addpath ../needle_FEM_realtime/WYZ_FEM/
+addpath ../needle_FEM_realtime/WYZ_FEM/invChol/
 
 %% FEM needed input
 load plot_params.mat

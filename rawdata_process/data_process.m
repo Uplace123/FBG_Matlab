@@ -15,7 +15,7 @@ end
 
 row_num = NumChannel; 
 % get the curvature
-diff_val_mean = mean(RawData,1) - RefData;
+diff_val_mean = mean(RawData,1) - RefData
 
 get_curvature = [1 diff_val_mean(1:2) 1 diff_val_mean(3:4) 1 diff_val_mean(5:6) 1 diff_val_mean(7:8)] * H;
 

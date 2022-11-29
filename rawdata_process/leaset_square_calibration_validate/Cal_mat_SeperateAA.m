@@ -36,25 +36,25 @@ for i = 1:size(curvature,2)
     real_mat = [real_mat; row_real_mat];
 end
 
-% curvature = curvature2;
-% for i = 1:size(curvature,2)
-%     row_real_mat = [];
-%     for j = 1:num_AA
-%         add = [];
-%         for k = num_trial_2
-%             %for h = 1:200
-%                 add = [add; curvature(i) 0];
-%             %end
-%         end
-%         for k = num_trial_2
-%             %for h = 1:200
-%                 add = [add; 0 curvature(i)];
-%             %end
-%         end
-%         row_real_mat = [row_real_mat add];
-%     end
-%     real_mat = [real_mat; row_real_mat];
-% end
+curvature = curvature2;
+for i = 1:size(curvature,2)
+    row_real_mat = [];
+    for j = 1:num_AA
+        add = [];
+        for k = num_trial_2
+            %for h = 1:200
+                add = [add; curvature(i) 0];
+            %end
+        end
+        for k = num_trial_2
+            %for h = 1:200
+                add = [add; 0 curvature(i)];
+            %end
+        end
+        row_real_mat = [row_real_mat add];
+    end
+    real_mat = [real_mat; row_real_mat];
+end
 
 %disp(real_mat);
 %the dim of real_mat should be (trial_0deg + trial_90deg)*num_curve * (numAA*numCH)
@@ -96,36 +96,36 @@ for i = 1:size(curvature,2) % five curves (excluding straight)
 end
 
 
-% % read data from validation.xls
-% curvature = curvature2;
-% namefile = namefile2;
-% for i = 1:size(curvature,2) % five curves (excluding straight)
-%     curve = num2str(curvature(i));
-%     trial_0d = [];
-%     trial_90d = [];
-%     % temp compensation
-%     for tri = num_trial_2
-%         % get reference reading
-%         sheet_name_unbent = strcat('trial',num2str(tri),'_0mm'); 
-%         fbg_unbent_0d = readmatrix(namefile,'Sheet',strcat(sheet_name_unbent,'_0deg'));
-%         fbg_unbent_90d = readmatrix(namefile,'Sheet',strcat(sheet_name_unbent,'_90deg'));
-%     
-%         sheet_name = strcat('trial',num2str(tri),'_',curve,'mm'); 
-%         data = readmatrix(namefile,'Sheet',strcat(sheet_name,'_0deg')) - fbg_unbent_0d;
-%         fbg_curve_0d = data(:,index);
-%         
-%         trial_0d = [trial_0d ; mean(fbg_curve_0d,1)]; % dim: 1*numAA*numCH
-%         %trial_0d = [trial_0d ; fbg_curve_0d];
-%         data = readmatrix(namefile,'Sheet',strcat(sheet_name,'_90deg')) - fbg_unbent_90d;
-%         fbg_curve_90d = data(:,index);
-%         trial_90d = [trial_90d ; mean(fbg_curve_90d,1)];
-%         %trial_90d = [trial_90d ; fbg_curve_90d];
-%     end
-%     % construct measrue_mat
-%     % disp(trial_0d);
-%     measure_mat = [measure_mat; trial_0d; trial_90d];
-% end
-%% End of data loading
+% read data from validation.xls
+curvature = curvature2;
+namefile = namefile2;
+for i = 1:size(curvature,2) % five curves (excluding straight)
+    curve = num2str(curvature(i));
+    trial_0d = [];
+    trial_90d = [];
+    % temp compensation
+    for tri = num_trial_2
+        % get reference reading
+        sheet_name_unbent = strcat('trial',num2str(tri),'_0mm'); 
+        fbg_unbent_0d = readmatrix(namefile,'Sheet',strcat(sheet_name_unbent,'_0deg'));
+        fbg_unbent_90d = readmatrix(namefile,'Sheet',strcat(sheet_name_unbent,'_90deg'));
+    
+        sheet_name = strcat('trial',num2str(tri),'_',curve,'mm'); 
+        data = readmatrix(namefile,'Sheet',strcat(sheet_name,'_0deg')) - fbg_unbent_0d;
+        fbg_curve_0d = data(:,index);
+        
+        trial_0d = [trial_0d ; mean(fbg_curve_0d,1)]; % dim: 1*numAA*numCH
+        %trial_0d = [trial_0d ; fbg_curve_0d];
+        data = readmatrix(namefile,'Sheet',strcat(sheet_name,'_90deg')) - fbg_unbent_90d;
+        fbg_curve_90d = data(:,index);
+        trial_90d = [trial_90d ; mean(fbg_curve_90d,1)];
+        %trial_90d = [trial_90d ; fbg_curve_90d];
+    end
+    % construct measrue_mat
+    % disp(trial_0d);
+    measure_mat = [measure_mat; trial_0d; trial_90d];
+end
+% End of data loading
 
 % disp(measure_mat);
 
